@@ -1,0 +1,111 @@
+# AsliChoice — Agent Metadata
+# Agents MUST read this file at the start of every session.
+# Update only the `state:` block; everything else is stable project context.
+
+project:
+  name: AsliChoice
+  type: omnichannel-commerce-platform
+  modules_total: 20
+  source_of_truth:
+    srs: doc/SOFTWARE_REQUIREMENT_SPECIFICATION_ASLI_CHOICE.md
+    summary: doc/PROJECT_DETAILS.md
+    architecture: doc/old.arechitecture.md
+
+stack:
+  backend:
+    framework: Django + Django REST Framework
+    python: "3.11"
+    db: MySQL  # primary; SQLite only for local dev fallback
+    cache: Redis  # optional Phase 1; required for production rate limiting
+    auth: JWT (access + refresh) via SimpleJWT
+    task_queue: Celery + Redis  # for async notifications, sync queues (Phase 1.5)
+    requirements_layout: requirements/{base,development,production}.txt
+  frontend_admin:
+    framework: React + Vite + TypeScript
+    styling: Tailwind CSS
+    components: shadcn/ui
+    data: TanStack Query
+    forms: TanStack Form + Zod
+    routing: TanStack Router OR React Router (choose in 002)
+    state: Zustand for ephemeral UI, TanStack Query for server state
+    icons: lucide-react
+  frontend_storefront:
+    framework: Wagtail (Django-based) + Tailwind CSS
+    rendering: SSR-first for SEO
+    purpose: marketing + product browsing; checkout posts to Django API
+  testing:
+    backend: pytest + pytest-django + factory_boy
+    frontend: Vitest + React Testing Library
+    e2e: Playwright
+    api: Postman collections committed under qa/postman/
+  deployment:
+    target: cPanel + Phusion Passenger (Python app)
+    script: deploy.sh  # mirrors structure of E:\extra\kimplaspiping\kp\deploy.sh
+    config_location: ~/deploy_config/<env_name>/<env_name>.{config,env}
+    web_server: Apache via .htaccess
+
+conventions:
+  branching: trunk-based; short-lived feature branches `feat/<module>-<task>`
+  commit_style: conventional-commits  # feat:, fix:, docs:, chore:, refactor:, test:
+  pr_required: true
+  linters: [ruff, black, isort, eslint, prettier, stylelint]
+  pre_commit: husky + lint-staged (frontend) + pre-commit (python)
+  api_versioning: URL prefix /api/v1/
+  error_code_prefix: "{DOMAIN}-{NNN}"  # e.g. AUTH-001, INV-001 — see plans/_conventions.md
+  no_hardcoding: true
+  soft_delete_only: true
+  ledger_driven: [inventory, wallet, vendor, customer, finance]
+  audit_log_required: true
+
+security:
+  owasp_top_10: enforced
+  password_hashing: argon2 (django default fallback to pbkdf2)
+  jwt_lifetime_minutes: { access: 15, refresh: 60 * 24 * 7 }
+  rate_limits:
+    otp_per_identifier_per_15min: 5
+    login_failed_lockout_after: 10
+    api_default_per_minute: 60
+  session_timeout_minutes: 30
+  cors: env-driven allowlist
+  secrets: never committed; loaded from env files in ~/deploy_config/
+
+phasing:
+  phase_0_foundation: plans/phase-0-foundation/
+  phase_1_modules: plans/phase-1-modules/
+  phase_2_hardening: plans/phase-2-hardening/
+  phase_3_launch: plans/phase-3-launch/
+
+module_order:
+  # Order of implementation. Dependencies dictate this — do not reorder casually.
+  - { id: M01, name: master-management, depends_on: [] }
+  - { id: M02, name: user-role,         depends_on: [M01] }
+  - { id: M03, name: vendor,            depends_on: [M01, M02] }
+  - { id: M04, name: purchase,          depends_on: [M01, M02, M03] }
+  - { id: M05, name: inventory,         depends_on: [M01, M02, M04] }
+  - { id: M11, name: notifications,     depends_on: [M02] }   # pulled early — many modules need OTP/notify
+  - { id: M07, name: pos,               depends_on: [M01, M02, M05, M11] }
+  - { id: M06, name: online-store,      depends_on: [M01, M02, M05, M11] }
+  - { id: M08, name: sales-orders,      depends_on: [M01, M02, M05, M06, M07] }
+  - { id: M09, name: crm,               depends_on: [M01, M02, M08] }
+  - { id: M10, name: referral-wallet,   depends_on: [M02, M08, M09] }
+  - { id: M14, name: delivery,          depends_on: [M01, M06, M08] }
+  - { id: M15, name: returns-qc,        depends_on: [M05, M07, M08, M14] }
+  - { id: M12, name: finance,           depends_on: [M01, M04, M05, M07, M08, M10] }
+  - { id: M13, name: reports-bi,        depends_on: [M01, M04, M05, M06, M07, M08, M10, M12] }
+  - { id: M16, name: hr-payroll,        depends_on: [M02, M12] }
+  - { id: M17, name: documents-media,   depends_on: [M02] }
+  - { id: M18, name: system-settings,   depends_on: [M01, M02] }
+  - { id: M19, name: super-admin-audit, depends_on: [M02, M18] }
+  - { id: M20, name: mobile-api-sync,   depends_on: [M02, M05, M07, M08] }
+
+agent_routing:
+  see: plans/_agent-routing.md
+
+# === MUTABLE BLOCK — agents update this ===
+state:
+  current_phase: phase-0-foundation
+  current_step: plans/phase-0-foundation/000-repo-bootstrap.md
+  last_updated: 2026-05-14
+  last_actor: planning-bootstrap
+  notes:
+    - Plans scaffolded. No implementation has begun.

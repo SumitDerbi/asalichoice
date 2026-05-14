@@ -186,7 +186,7 @@ JWT + refresh tokens, role + permission middleware, route guards, permission-bas
 ### Submodules
 1. **Purchase Requisition** — Internal request. Only HO/Main Branch creates. Multiple requisitions can merge into one PO. Doesn't affect inventory. Priorities: `LOW/MEDIUM/HIGH/URGENT`. Status flow: `DRAFT → SUBMITTED → APPROVED → PARTIALLY_PROCESSED → COMPLETED → REJECTED`.
 2. **Purchase Order** — Header (PO#, Vendor, Procurement Branch, **Destination Branch**, **Destination Warehouse**, dates, terms) + Items (product/variant/qty/unit/rate/tax/discount). Statuses: `DRAFT → PENDING_APPROVAL → APPROVED → PARTIALLY_RECEIVED → COMPLETED / CANCELLED`. Auto-generated PO numbers.
-3. **Approval Workflow** — Small auto-approve, large needs admin. Future: Manager → Admin → Super Admin.
+3. **Approval Workflow** — Small auto-approve, large needs admin. Future: Manager → Admin → Super Admin. **Approval thresholds are configurable** (per-amount, per-category, per-branch) rather than hardcoded.
 4. **GRN (Most Critical)** — **Inventory updates ONLY after GRN**, never after PO. GRN updates Destination Branch + Warehouse inventory. Fields: GRN#, linked PO, dest branch/warehouse, received qty, damaged qty, receiver, notes.
 5. **Partial Receipt** — Multiple inwarding under one PO.
 6. **Purchase Invoice** — Invoice upload, GST, tax breakup, PO + GRN + vendor linkage. Finance-ready.
@@ -199,7 +199,7 @@ JWT + refresh tokens, role + permission middleware, route guards, permission-bas
 13. **Analytics** — Branch/vendor/product purchase trends, cost trends, delayed delivery, returns.
 14. **Reports** — Purchase Register, PO, GRN, Branch/Vendor-wise, Pending PO, Returns, Outstanding Vendor.
 15. **Barcode Integration** — Inward scanning, GRN verification.
-16. **Offline Support** (future).
+16. **Offline Support** (future) — Queue-based sync for warehouses & low-internet branches; offline GRN capture, local queue, conflict-aware sync on reconnect.
 
 ### Permissions
 `PURCHASE_VIEW, PURCHASE_CREATE, PURCHASE_APPROVE, PURCHASE_GRN, PURCHASE_RETURN, PURCHASE_EXPORT, REQUISITION_CREATE/APPROVE/CONVERT_TO_PO`
@@ -235,6 +235,7 @@ JWT + refresh tokens, role + permission middleware, route guards, permission-bas
 16. **Reports** — Stock Summary, Ledger, Branch/Warehouse-wise, Low Stock, Damaged, Fast/Slow/Dead Stock, Valuation, Expiry, Online Fulfillment.
 17. **Offline Inventory Sync** — Queue-based, conflict-resolving.
 18. **Valuation** — FIFO, AVERAGE_COST (avoid LIFO initially).
+19. **Negative Stock Prohibition (Module-level restatement)** — Hard-block at every entry point (POS online + offline, online checkout, transfers, adjustments). Inventory may reach 0, never below. Not a warning — a strict system constraint.
 
 ### Permissions
 `STOCK_VIEW, STOCK_TRANSFER, STOCK_ADJUST, STOCK_AUDIT, STOCK_EXPORT`
@@ -275,9 +276,11 @@ JWT + refresh tokens, role + permission middleware, route guards, permission-bas
 24. **SEO & Marketing** — SEO URLs, meta, sitemap; future: abandoned cart, recommendations, campaigns.
 25. **Reports** — Online sales, pincode-wise, branch fulfillment, delivery profitability, cart abandonment, offer usage, location-wise demand.
 26. **Security** — Secure checkout, payment validation, fraud prevention, audit logs. Never store sensitive payment data directly.
+27. **Customer Registration Approval Flow (origin)** — Statuses originate here and propagate to CRM: `PENDING_SERVICEABILITY → ACTIVE / BLOCKED / INACTIVE`. Non-serviceable pincode → CRM record + admin serviceability request (never auto-rejected).
+28. **Abandoned Cart Recovery** (future) — Dedicated submodule: detection, recovery campaigns, recovery analytics, scheduled reminders via SMS/Email/WhatsApp/Push.
 
 ### Tables
-`online_orders(_items), customer_addresses, shopping_carts, cart_items, wishlists(_items), online_payments, coupons, coupon_usages, serviceable_pincodes, online_fulfillment_logs, order_status_logs, customer_serviceability_requests`
+`online_orders(_items), customer_addresses, shopping_carts, cart_items, wishlists(_items), online_payments, coupons, coupon_usages, serviceable_pincodes, online_fulfillment_logs, order_status_logs, customer_serviceability_requests, abandoned_carts`
 
 ---
 
@@ -305,6 +308,8 @@ JWT + refresh tokens, role + permission middleware, route guards, permission-bas
 17. **Notifications** (future) — Low stock, shift, billing alerts.
 18. **Security & Audit** — All billing creates audit trail; cashier tracking, refund approvals.
 19. **Performance** — Local caching, lightweight UI, fast search, keyboard shortcuts.
+20. **POS Device Registration / Terminal Binding** — POS billing only from registered devices (cross-reference Module 19). Each terminal is mapped to a branch; unregistered devices are hard-blocked from billing.
+21. **Tax-Inclusive vs Tax-Exclusive Billing** — Honors product/price-list tax mode from Module 1. POS surfaces correct breakup on bill; configurable globally and per branch.
 
 ### Permissions
 `POS_BILLING, POS_RETURN, POS_DISCOUNT, POS_CASHIER_CLOSE, POS_REPORT_VIEW, POS_REFUND_APPROVE`
@@ -344,7 +349,10 @@ JWT + refresh tokens, role + permission middleware, route guards, permission-bas
 `SALES_VIEW, SALES_CREATE, SALES_RETURN, SALES_REFUND, SALES_EXPORT, ORDER_MANAGE, DELIVERY_MANAGE`
 
 ### Tables
-`sales_orders(_items), sales_payments, sales_returns(_items), sales_refunds, sales_exchanges, sales_invoices, sales_channels, sales_status_logs, delivery_tracking, customer_sales_history, branch_payment_methods, payment_channel_configurations`
+`sales_orders(_items), sales_payments, sales_returns(_items), sales_refunds, sales_exchanges, sales_invoices, sales_channels, sales_status_logs, delivery_tracking, customer_sales_history, branch_payment_methods, payment_channel_configurations, invoice_sequences`
+
+### Branch-wise Invoice Numbering
+Each branch maintains its own invoice number series (with configurable prefix, padding, financial-year reset). Schema: `invoice_sequences (branch_id, channel, prefix, current_number, fy_start, fy_end, reset_policy)`.
 
 ---
 
@@ -409,7 +417,7 @@ Customer Refers → Referred User Registers → Referred User Purchases → Orde
 `REFERRAL_VIEW, REFERRAL_CONFIGURE, WALLET_VIEW, WALLET_ADJUST, PAYOUT_APPROVE, PARTNER_MANAGE`
 
 ### Tables
-`partners, partner_referrals, referral_rules, wallets, wallet_ledger, commission_transactions, partner_status_logs, referral_campaigns, future_payout_requests`
+`partners, partner_referrals, referral_rules, wallets, wallet_ledger, commission_transactions, partner_status_logs, referral_campaigns, future_payout_requests, referral_fraud_logs`
 
 ---
 
@@ -471,6 +479,8 @@ Customer Refers → Referred User Registers → Referred User Purchases → Orde
 16. **Adjustments** — Correction entries, journal entries, reversals; require permissions, remarks, audit logs.
 17. **Future Accounting Integration** — Tally, Zoho Books, ERP exports, CA reporting.
 18. **Future Credit System** — Customer/vendor/dealer credit limits; receivable/payable schema ready.
+19. **TDS (Tax Deducted at Source)** — Schema-ready from Day 1 (cross-reference Module 3 vendor tax). Vendor-level TDS applicability, section codes, deduction rates, TDS ledger entries, future TDS returns / Form 26Q readiness.
+20. **Opening Balance & Year-End Closing** — Opening balance entries per account at FY start; year-end closing flow (P&L → Retained Earnings, ledger lock for closed FY, comparative reports across FYs). Locked FYs are immutable; reopening requires Super Admin + audit log.
 
 ### Permissions
 `FINANCE_VIEW, LEDGER_VIEW, EXPENSE_MANAGE, PAYMENT_VIEW, PAYMENT_ADJUST, FINANCIAL_REPORTS, JOURNAL_ENTRY`
@@ -537,6 +547,8 @@ Customer Refers → Referred User Registers → Referred User Purchases → Orde
 17. **Fulfillment Analytics** — Speed, packing efficiency, branch dispatch load, success rate, avg delivery time.
 18. **Offline Fulfillment Readiness**.
 19. **Security & Audit**.
+20. **COD Reconciliation** — Cash collected by delivery agent → branch cash ledger → finance reconciliation. Statuses: `COLLECTED → DEPOSITED_TO_BRANCH → RECONCILED / DISCREPANCY`. Variance triggers audit alert. Branch-scoped, fully traceable.
+21. **Delivery Slot Booking** (future) — Customer-selectable delivery slots (e.g. morning/evening/specific windows), per-pincode slot availability, branch capacity planning, slot-based dispatch scheduling.
 
 ### Permissions
 `FULFILLMENT_VIEW, FULFILLMENT_PROCESS, DISPATCH_MANAGE, DELIVERY_TRACK, PICKLIST_MANAGE, DELIVERY_REPORTS`
@@ -606,8 +618,13 @@ Customer Refers → Referred User Registers → Referred User Purchases → Orde
 ### Permissions
 `EMPLOYEE_VIEW/MANAGE, ATTENDANCE_MANAGE, SHIFT_MANAGE, LEAVE_APPROVE, PAYROLL_VIEW/PROCESS/APPROVE, PAYSLIP_GENERATE, HR_REPORTS`
 
+### Additional Workforce Features
+- **Probation & Notice Period** — Per-employee probation window (configurable), confirmation workflow, notice-period tracking on resignation/termination.
+- **Full & Final (F&F) Settlement** — Triggered on `TERMINATED` / resignation. Calculates: pending salary, leave encashment, deductions, recoveries, bonus, gratuity-readiness. Status flow: `INITIATED → CALCULATED → APPROVED → PAID`. Permission + audit controlled.
+- **Holiday Calendar (per-branch)** — National + regional + branch-specific holidays. Drives attendance, payroll calculation, leave eligibility. Editable yearly; locked once a payroll cycle consumes it.
+
 ### Tables
-`employees, employee_branches, attendance_logs, attendance_configurations, attendance_devices, biometric_sync_logs, shift_assignments, leave_requests, salary_structures, payroll_cycles, employee_payroll, payroll_items, payslips, employee_activity_logs`
+`employees, employee_branches, attendance_logs, attendance_configurations, attendance_devices, biometric_sync_logs, shift_assignments, leave_requests, salary_structures, payroll_cycles, employee_payroll, payroll_items, payslips, employee_activity_logs, holiday_calendar, employee_probation, ff_settlements`
 
 ---
 
@@ -670,6 +687,8 @@ Customer Refers → Referred User Registers → Referred User Purchases → Orde
 18. **Backup & Recovery Configuration** — Automated backups & schedules.
 19. **API & Integration Configuration** — Payment gateways, delivery APIs, biometric APIs, accounting integrations.
 20. **Future AI & Smart Automation** — AI alerts, predictive automation, smart reorder, AI analytics.
+21. **Invoice Prefix & Financial-Year Reset** — Per-branch invoice prefix, padding, sequence start, automatic FY reset (configurable FY start month), separate series per channel (POS/Online/Wholesale).
+22. **Print Template Configuration** — Thermal (58mm/80mm), A4, digital. Header/footer, logo, terms, GST block, QR/UPI block; branch-overridable. WYSIWYG template editor (future).
 
 ### Permissions
 `SYSTEM_SETTINGS_MANAGE, AUTOMATION_MANAGE, BRANCH_CONFIGURATION, PAYMENT_CONFIGURATION, SECURITY_CONFIGURATION, FEATURE_TOGGLE_MANAGE`
@@ -800,7 +819,120 @@ Future: `MANUFACTURING, ASSEMBLY, BUNDLE, SUBSCRIPTION_RESERVE`
 
 ---
 
-## Appendix E — Architectural Decisions to Carry into Implementation
+## Appendix E — Cross-cutting Non-Functional & Governance Requirements
+
+These span all modules and are not owned by any single module.
+
+### Data Retention & Archival
+- Audit logs: retain **minimum 7 years** (GST/finance compliance), append-only.
+- Operational logs (API, sync, OTP): retain **12 months**, then archive.
+- Soft-deleted master records: retained indefinitely; never purged.
+- Archival store separate from operational DB (cold storage / S3 Glacier-class).
+
+### Multi-currency
+- **Non-goal for Phase 1.** System operates in **INR only**. Schema includes a `currency_code` column on monetary tables for future readiness, defaulted to `INR`.
+
+### Localization (UI)
+- Notification templates: multi-language Day 1 (English, Hindi, Marathi).
+- **UI i18n**: English only in Phase 1; schema/keys structured for future i18n (no hardcoded user-facing strings in code).
+
+### Rate Limiting & API Throttling
+- OTP: max 5 attempts / 15 min per identifier; resend cooldown ≥ 30s.
+- Login: max 10 failed attempts → temporary lock (15 min) + alert.
+- Public API: token-bucket per API key; configurable per integration.
+- Webhook receivers: signature + replay-window validation.
+
+### Error Catalog & User-Facing Error Codes
+- Standardized error code namespace (e.g. `INV-001` inventory, `PAY-001` payment, `AUTH-001` auth).
+- Every error: `code, http_status, user_message, internal_message, log_ref`.
+- Centralized error reference doc maintained alongside this spec.
+
+### Environment & Deployment Topology
+- Environments: `dev`, `staging`, `prod` — isolated DBs, secrets, integrations.
+- **Single-tenant** architecture (one AsliChoice instance); multi-tenant **not in scope**.
+- Branches are logical entities within the single tenant, not separate tenants.
+
+### SLA & Performance Targets
+- POS billing add-to-cart / save: **< 2s** at p95.
+- Online product listing (post-pincode confirm): **< 3s** at p95.
+- Dashboard / reports first paint: **< 5s** at p95.
+- OTP delivery: **< 30s** end-to-end at p95.
+- Sync queue drain (after reconnect): **< 5 min** for typical offline POS shift.
+
+### Disaster Recovery — RPO / RTO
+- **RPO (Recovery Point Objective): ≤ 15 min** for transactional data.
+- **RTO (Recovery Time Objective): ≤ 4 hours** for full restoration.
+- Daily full backups + continuous transaction-log shipping.
+- Quarterly DR drill mandatory; results logged.
+
+### Data Privacy & Right to Be Forgotten
+- Soft-delete is the **operational** norm; never deletes financial/audit records.
+- **Legal data-erasure path** for customer PII: pseudonymize PII (name, email, mobile, address) on verified request while preserving transactional integrity and tax-mandated records. Erasure action is itself audit-logged.
+- Access to PII export tools is permission-gated and audit-logged.
+
+---
+
+## Appendix F — Glossary / Acronyms
+
+| Term | Meaning |
+|---|---|
+| AOV | Average Order Value |
+| API | Application Programming Interface |
+| B2B | Business-to-Business |
+| BI | Business Intelligence |
+| COD | Cash on Delivery |
+| CRM | Customer Relationship Management |
+| DR | Disaster Recovery |
+| ERD | Entity-Relationship Diagram |
+| ESIC | Employees' State Insurance Corporation |
+| F&F | Full & Final Settlement |
+| FIFO | First-In-First-Out |
+| FY | Financial Year |
+| GDPR | General Data Protection Regulation (privacy reference) |
+| GPS | Global Positioning System |
+| GRN | Goods Receipt Note |
+| GST | Goods & Services Tax |
+| HO | Head Office |
+| HSN | Harmonized System of Nomenclature (tax code) |
+| IoT | Internet of Things |
+| JWT | JSON Web Token |
+| KPI | Key Performance Indicator |
+| LTV | Lifetime Value |
+| MFA | Multi-Factor Authentication |
+| MLM | Multi-Level Marketing |
+| MOQ | Minimum Order Quantity |
+| MOV | Minimum Order Value |
+| OCR | Optical Character Recognition |
+| OTP | One-Time Password |
+| P&L | Profit & Loss |
+| PAN | Permanent Account Number |
+| PF | Provident Fund |
+| PII | Personally Identifiable Information |
+| PO | Purchase Order |
+| POS | Point of Sale |
+| PWA | Progressive Web App |
+| QC | Quality Control |
+| RBAC | Role-Based Access Control |
+| RPO | Recovery Point Objective |
+| RTO | Return-to-Origin (logistics) / Recovery Time Objective (DR) — disambiguated by context |
+| SKU | Stock Keeping Unit |
+| SLA | Service Level Agreement |
+| SRS | Software Requirement Specification |
+| TDS | Tax Deducted at Source |
+| UPI | Unified Payments Interface |
+
+---
+
+## Appendix G — Related Documents
+
+- Architecture (legacy / current draft): [doc/old.arechitecture.md](old.arechitecture.md)
+- Source SRS: [doc/SOFTWARE_REQUIREMENT_SPECIFICATION_ASLI_CHOICE.md](SOFTWARE_REQUIREMENT_SPECIFICATION_ASLI_CHOICE.md)
+
+> Note: Online Order flow in Appendix A is a **specialization** of the unified Sales Order flow — they are intentionally aligned, not duplicated.
+
+---
+
+## Appendix H — Architectural Decisions to Carry into Implementation
 
 1. Use a **single user table** with multi-role mapping.
 2. Use a **ledger table per domain** (inventory, wallet, vendor, customer, accounting) — never mutate balances directly.

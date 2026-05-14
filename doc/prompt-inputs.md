@@ -1,0 +1,32 @@
+- react, django, zode validation, 
+- cpanel phusion app deployment
+- htaccess, 
+- requirements/base,development, production
+- security
+- site settings social media, contact details, email, address
+- website - wegtail, tailwind css, mobile responsive
+- react query or tankstack, TanStack Form 
+- plan small steps to verify manually 
+- unit test for front end and backend
+- postman collections and unit tests
+- documentation for api and ui along with development
+- playrite testing files
+- quality code and simple organised code
+- update skills file and readme file 
+- keep prompt plan file next step and previous steps
+- verification steps, manual automated
+- default commands for seting up default tabular entry
+- do not hard code wherever consider db
+- use best context and logic, tokens to give best output also tell me which module to be executed by which agent for optimal usage of you
+- keep tools enable disable and api keys section in admin panel
+- for application use shadcn and user friendly, animated and engaing ui for operator
+- create api of one module then ui of same and integration of same api for best result and checking, testing as well
+- informative, take compact ui, sutable well deisng and very user frendly 
+- use moder component, in place editing, drawers, contect menus, new modern component
+- also consider best componets, practices, linting for ui api, huskey, 
+- short cut keys, search in admin panel
+- web site seo, modern tools integrations,
+- user guide, image sizes documents, technical guide, deployment guide
+- write deploy.sh file for setting up everything ref E:\extra\kimplaspiping\kp\deploy.sh same structure will be there for deployment.
+- wanted to maitain this software for future keep those documents as well but keep sorted documentation not to confuse developer with lots of information or organised and keep one platform for all documetation
+- 
