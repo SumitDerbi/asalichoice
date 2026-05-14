@@ -1,0 +1,61 @@
+# =============================================================================
+# AsliChoice — root pyproject.toml
+# -----------------------------------------------------------------------------
+# Tooling-only configuration for the monorepo (ruff, black, isort, pre-commit).
+# The actual Python project lives in `backend/` and has its own pyproject /
+# requirements files. This file is NOT a packageable Python project.
+# =============================================================================
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = '''
+/(
+    \.venv
+  | venv
+  | build
+  | dist
+  | node_modules
+  | staticfiles
+  | media
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["config", "apps"]
+skip = [".venv", "venv", "build", "dist", "node_modules", "staticfiles", "media"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "node_modules",
+    "staticfiles",
+    "media",
+    "migrations",
+]
+
+[tool.ruff.lint]
+# Sensible default rule set; per-app overrides go in backend/pyproject.toml later.
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+]
+ignore = [
+    "E501",  # line length handled by black
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**/*.py" = ["B011"]

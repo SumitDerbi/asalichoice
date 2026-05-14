@@ -1,0 +1,19 @@
+{
+  "name": "asalichoice",
+  "private": true,
+  "version": "0.0.0",
+  "description": "AsliChoice — omnichannel retail & commerce platform monorepo (root tooling).",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "admin-ui"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "e2e": "npm run e2e --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
