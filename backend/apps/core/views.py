@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC
+
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiExample, extend_schema
@@ -53,11 +55,14 @@ class HealthView(APIView):
         ],
     )
     def get(self, request: Request) -> Response:
+        # Normalize the timestamp to UTC with a ``Z`` suffix so the response
+        # matches the documented OpenAPI example shape.
+        now_utc = timezone.now().astimezone(UTC).replace(microsecond=0)
         return Response(
             {
                 "status": "ok",
                 "version": getattr(settings, "APP_VERSION", "0.0.0"),
-                "time": timezone.now().isoformat(),
+                "time": now_utc.isoformat().replace("+00:00", "Z"),
             },
             status=status.HTTP_200_OK,
         )

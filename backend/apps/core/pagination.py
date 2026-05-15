@@ -22,9 +22,14 @@ class DefaultPageNumberPagination(PageNumberPagination):
 
 
 class LedgerCursorPagination(CursorPagination):
-    """Cursor pagination for append-only ledger endpoints (inventory, finance, ...)."""
+    """Cursor pagination for append-only ledger endpoints (inventory, finance, ...).
+
+    DRF's ``CursorPagination`` enforces a fixed ``page_size`` and does not
+    honour ``max_page_size`` or ``page_size_query_param``; if a configurable
+    page size is needed for a specific ledger, subclass this and override
+    ``get_page_size`` to clamp the requested size.
+    """
 
     page_size = 50
-    max_page_size = 200
     ordering = "-id"
     cursor_query_param = "cursor"

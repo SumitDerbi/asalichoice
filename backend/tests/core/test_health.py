@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -21,6 +22,17 @@ def test_health_returns_ok(api_client: APIClient) -> None:
     assert body["status"] == "ok"
     assert isinstance(body["version"], str) and body["version"]
     assert isinstance(body["time"], str) and body["time"]
+    # Response time is normalized to UTC with a ``Z`` suffix (per OpenAPI example).
+    assert body["time"].endswith("Z")
+
+
+@override_settings(APP_VERSION="9.9.9-test")
+def test_health_reads_app_version_setting(api_client: APIClient) -> None:
+    """The endpoint must read ``settings.APP_VERSION`` (not a hardcoded value)."""
+    response = api_client.get("/api/v1/health/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["version"] == "9.9.9-test"
 
 
 def test_health_is_public(api_client: APIClient) -> None:
