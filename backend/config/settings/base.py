@@ -81,6 +81,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Must run after AuthenticationMiddleware so request.user is populated
+    # before we snapshot it into the request context.
+    "apps.core.audit.middleware.RequestContextMiddleware",
 ]
 
 # ---------------------------------------------------------------------------
@@ -249,3 +252,15 @@ LOGGING = {
 # ---------------------------------------------------------------------------
 # Exposed via the /api/v1/health/ endpoint.
 APP_VERSION = env("APP_VERSION", default="0.1.0")
+
+# ---------------------------------------------------------------------------
+# Core platform constants (plan 005)
+# ---------------------------------------------------------------------------
+# How long audit rows must be retained before a maintenance job may prune
+# them. Used as the policy reference; the actual pruning job lands later.
+AUDIT_RETENTION_YEARS = env.int("AUDIT_RETENTION_YEARS", default=7)
+
+# When True (default) every concrete ``LedgerEntry`` subclass refuses
+# updates / deletes at the application layer. Test fixtures may flip it
+# off temporarily; production must leave it True.
+LEDGER_IMMUTABLE = env.bool("LEDGER_IMMUTABLE", default=True)
