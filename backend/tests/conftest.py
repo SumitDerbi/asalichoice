@@ -29,16 +29,18 @@ def user_factory(db):
     def _make(**overrides: Any):
         counter["n"] += 1
         defaults: dict[str, Any] = {
-            "username": f"user-{counter['n']}",
             "email": f"user-{counter['n']}@example.test",
         }
         defaults.update(overrides)
-        # Password handling stays out of phase-0 fixtures because the
-        # production hasher (Argon2) requires a native lib that isn't
-        # part of the minimal dev install. Real auth flows are tested
-        # under M02 with the proper hasher in place.
+        password = defaults.pop("password", None)
+        # The production hasher (Argon2) requires a native lib that
+        # isn't part of the minimal dev install; tests opt into a real
+        # password via the ``password=`` kwarg when needed.
         user = User(**defaults)
-        user.set_unusable_password()
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save()
         return user
 

@@ -26,7 +26,8 @@ export function AppShell() {
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
   const navigate = useNavigate();
-  const clearAuth = useAuthStore((s) => s.clear);
+  const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -49,8 +50,8 @@ export function AppShell() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  function handleLogout() {
-    clearAuth();
+  async function handleLogout() {
+    await logout();
     navigate('/login');
   }
 
@@ -114,6 +115,11 @@ export function AppShell() {
             </kbd>
           </Button>
           <div className="ml-auto flex items-center gap-2">
+            {user && (
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                {user.display_name || user.email}
+              </span>
+            )}
             <Button variant="ghost" size="sm" onClick={() => setShortcutsOpen(true)}>
               ?
             </Button>

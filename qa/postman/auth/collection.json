@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "AsliChoice — Auth",
+    "_postman_id": "9c2f6a1e-1d34-4f0f-8a4a-006-auth-skeleton",
+    "description": "JWT auth surface delivered in plan 006-auth-skeleton.md.\n\nUse the `local` environment file in `qa/postman/local.env.json`.\n\nFlow:\n1. `Login` populates `access` + `refresh` variables.\n2. `Me` and `Refresh` rely on those variables.\n3. `Logout` blacklists the refresh token and clears variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login/",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.environment.set('access', data.access);",
+              "pm.environment.set('refresh', data.refresh);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Me",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/auth/me/",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "me", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('returns the authenticated user', () => {",
+              "  const u = pm.response.json();",
+              "  pm.expect(u.email).to.eql(pm.environment.get('email'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Refresh",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/auth/refresh/",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "refresh", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.environment.set('access', pm.response.json().access);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/logout/",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "logout", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh\": \"{{refresh}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('205 Reset Content', () => pm.response.to.have.status(205));",
+              "pm.environment.unset('access');",
+              "pm.environment.unset('refresh');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -44,6 +44,10 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Re-include admin-ui source library (Python's lib/ rule above is too greedy).
+!admin-ui/src/lib/
+!admin-ui/src/lib/**
+
 # PyInstaller
 *.manifest
 *.spec

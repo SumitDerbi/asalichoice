@@ -5,11 +5,13 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuthStore } from '@/lib/auth/store';
+import { ApiError } from '@/lib/api/errors';
 
 const APP_NAME = import.meta.env.VITE_APP_NAME ?? 'AsliChoice Admin';
 
 const loginSchema = z.object({
-  identifier: z.string().min(3, 'Enter your phone or email'),
+  email: z.string().email('Enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -17,20 +19,20 @@ type LoginValues = z.infer<typeof loginSchema>;
 type FieldErrors = Partial<Record<keyof LoginValues, string>>;
 
 /**
- * UI-only login placeholder. Real authentication (OTP + password) is
- * wired in plan 006-authentication-skeleton.md. This page exists so the
- * shell + router are exercisable end-to-end from day one.
+ * Email + password sign-in. Posts to ``/api/v1/auth/login/`` via the
+ * auth store, persists tokens, then routes to the dashboard.
  */
 export function LoginPage() {
   const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
   const [errors, setErrors] = React.useState<FieldErrors>({});
   const [submitting, setSubmitting] = React.useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const payload = {
-      identifier: String(data.get('identifier') ?? ''),
+      email: String(data.get('email') ?? '').trim(),
       password: String(data.get('password') ?? ''),
     };
     const parsed = loginSchema.safeParse(payload);
@@ -45,11 +47,18 @@ export function LoginPage() {
     }
     setErrors({});
     setSubmitting(true);
-    toast.info('Authentication will be wired in plan 006. Continuing as a guest.');
-    window.setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await login(parsed.data.email, parsed.data.password);
       navigate('/', { replace: true });
-    }, 400);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error('Unexpected error. Please try again.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -61,17 +70,18 @@ export function LoginPage() {
         </div>
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="identifier">Phone or email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="identifier"
-              name="identifier"
+              id="email"
+              name="email"
+              type="email"
               autoComplete="username"
-              aria-invalid={errors.identifier ? true : undefined}
-              aria-describedby={errors.identifier ? 'identifier-error' : undefined}
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'email-error' : undefined}
             />
-            {errors.identifier && (
-              <p id="identifier-error" className="text-xs text-destructive">
-                {errors.identifier}
+            {errors.email && (
+              <p id="email-error" className="text-xs text-destructive">
+                {errors.email}
               </p>
             )}
           </div>
@@ -92,7 +102,7 @@ export function LoginPage() {
             )}
           </div>
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
       </div>

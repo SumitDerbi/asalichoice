@@ -58,6 +58,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     "drf_spectacular",
@@ -65,7 +66,10 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "apps.core",
+    "apps.users",
 ]
+
+AUTH_USER_MODEL = "users.User"
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -187,6 +191,9 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "apps.core.exceptions.envelope_exception_handler",
+    "DEFAULT_THROTTLE_RATES": {
+        "login": env("THROTTLE_LOGIN_RATE", default="5/min"),
+    },
 }
 
 # ---------------------------------------------------------------------------

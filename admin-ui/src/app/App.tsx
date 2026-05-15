@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './layout';
 import { LoginPage } from '@/modules/auth/login-page';
@@ -7,6 +8,15 @@ import type { ReactElement } from 'react';
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const access = useAuthStore((s) => s.accessToken);
+  const user = useAuthStore((s) => s.user);
+  const bootstrap = useAuthStore((s) => s.bootstrap);
+
+  React.useEffect(() => {
+    if (access && !user) {
+      void bootstrap();
+    }
+  }, [access, user, bootstrap]);
+
   if (!access) return <Navigate to="/login" replace />;
   return children;
 }
