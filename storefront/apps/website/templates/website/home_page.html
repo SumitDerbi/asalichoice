@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<section class="grid gap-8 py-6 md:py-12 lg:grid-cols-2 lg:items-center">
+    <div class="space-y-4">
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+            {% if page.hero_title %}{{ page.hero_title }}{% else %}{{ page.title }}{% endif %}
+        </h1>
+        {% if page.hero_tagline %}
+            <p class="max-w-prose text-base text-slate-600 sm:text-lg">{{ page.hero_tagline }}</p>
+        {% endif %}
+        {% if page.hero_cta_text and page.hero_cta_url %}
+            <a href="{{ page.hero_cta_url }}"
+               class="inline-flex items-center rounded-md bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">
+                {{ page.hero_cta_text }}
+            </a>
+        {% endif %}
+    </div>
+    {% if page.hero_image %}
+        <div class="overflow-hidden rounded-2xl shadow-sm ring-1 ring-slate-200">
+            {% image page.hero_image fill-1200x800 class="h-full w-full object-cover" alt=page.hero_image.title %}
+        </div>
+    {% endif %}
+</section>
+
+{% if page.banner %}
+    <div class="space-y-12 py-6">
+        {% for block in page.banner %}
+            {% include_block block %}
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

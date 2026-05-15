@@ -1,0 +1,7 @@
+{% load wagtailimages_tags %}
+<figure class="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+    {% image value.image fill-1600x900 alt=value.alt_text|default:value.image.title class="h-full w-full object-cover" %}
+    {% if value.caption %}
+        <figcaption class="bg-white px-4 py-2 text-sm text-slate-500">{{ value.caption }}</figcaption>
+    {% endif %}
+</figure>

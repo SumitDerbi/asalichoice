@@ -1,0 +1,19 @@
+# =============================================================================
+# AsliChoice — storefront development requirements
+# -----------------------------------------------------------------------------
+# Installs everything in base.txt plus tooling for local development.
+# Use: `pip install -r requirements/development.txt`
+#
+# MySQL driver is included here so the storefront can point at the shared
+# dev MySQL database when configured; the SQLite fallback in development.py
+# keeps first-time setup working without MySQL.
+# =============================================================================
+
+-r base.txt
+
+mysqlclient==2.2.6
+pytest==8.3.4
+pytest-django==4.9.0
+ruff==0.8.4
+black==26.3.1
+isort==5.13.2

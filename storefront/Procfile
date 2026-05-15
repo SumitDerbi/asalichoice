@@ -1,0 +1,2 @@
+# For clarity / local production-shape runs. cPanel uses passenger_wsgi.py.
+web: gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8001} --workers 3

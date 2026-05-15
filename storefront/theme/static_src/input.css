@@ -1,0 +1,14 @@
+/*
+ * AsliChoice storefront — Tailwind entry stylesheet.
+ *
+ * Built by `npm --prefix theme/static_src run tailwind:build` into
+ * theme/static/theme/css/output.css and served by Django's staticfiles
+ * finders via the `theme` app.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Project-specific component styles can go below. Keep this file lean —
+   prefer utility classes in templates per _conventions.md §6. */

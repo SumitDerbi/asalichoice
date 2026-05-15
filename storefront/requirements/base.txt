@@ -1,0 +1,17 @@
+# =============================================================================
+# AsliChoice — storefront base requirements
+# -----------------------------------------------------------------------------
+# Pinned versions shared across all environments.
+# Environment-specific extras live in development.txt / production.txt and
+# include this file via `-r base.txt`.
+#
+# Django is pinned to match the backend so the two projects share a known
+# common version on the deploy host. Wagtail 6.3 supports Django 5.0–5.2.
+# =============================================================================
+
+Django==5.1.15
+wagtail==6.3.1
+wagtail-seo==3.1.1
+django-environ==0.11.2
+whitenoise==6.8.2
+requests==2.32.3

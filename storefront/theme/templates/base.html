@@ -1,0 +1,75 @@
+{% load static wagtailcore_tags wagtailuserbar %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+
+    {# Page title: SEO override falls back to Wagtail page title, then site name. #}
+    <title>
+        {% block title %}
+            {% if page.seo_title %}{{ page.seo_title }}{% elif page.title %}{{ page.title }}{% else %}{{ SITE_NAME }}{% endif %}
+        {% endblock %}
+        {% block title_suffix %}{% if SITE_NAME %} — {{ SITE_NAME }}{% endif %}{% endblock %}
+    </title>
+
+    {# Meta description: page-level override, then global fallback. #}
+    <meta name="description" content="{% block meta_description %}{% if page.search_description %}{{ page.search_description }}{% else %}{{ SITE_DESCRIPTION }}{% endif %}{% endblock %}" />
+
+    {# Canonical URL. #}
+    <link rel="canonical" href="{% block canonical_url %}{% if page %}{{ page.get_full_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}{% endblock %}" />
+
+    {# OpenGraph + Twitter + JSON-LD from wagtail-seo (page-level overrides + sensible defaults).
+       In a Wagtail page render the page is exposed as both `page` and `self` automatically. #}
+    {% if page %}
+        {% include "wagtailseo/meta.html" %}
+        {% include "wagtailseo/struct_data.html" %}
+    {% endif %}
+
+    {# Favicons. #}
+    <link rel="icon" href="{% static 'theme/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="{% static 'theme/apple-touch-icon.png' %}" />
+
+    {# Organization JSON-LD — site-wide, separate from per-page wagtail-seo data. #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "{{ SITE_NAME|escapejs }}",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "description": "{{ SITE_DESCRIPTION|escapejs }}"
+    }
+    </script>
+
+    {# Tailwind-built CSS. The build pipeline lives in theme/static_src/. #}
+    <link rel="stylesheet" href="{% static 'theme/css/output.css' %}" />
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    {% wagtailuserbar %}
+
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+            <a href="/" class="text-lg font-semibold tracking-tight">{{ SITE_NAME }}</a>
+            <nav aria-label="Primary" class="hidden gap-6 text-sm font-medium sm:flex">
+                <a href="/" class="hover:text-slate-600">Home</a>
+                <a href="/blog/" class="hover:text-slate-600">Blog</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main" class="mx-auto max-w-6xl px-4 py-10">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-16 border-t border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-slate-500 sm:flex-row">
+            <p>&copy; {% now "Y" %} {{ SITE_NAME }}. All rights reserved.</p>
+            <p>v{{ APP_VERSION }}</p>
+        </div>
+    </footer>
+
+    {% block extra_body %}{% endblock %}
+</body>
+</html>
