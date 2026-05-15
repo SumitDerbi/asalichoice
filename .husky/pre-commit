@@ -1,0 +1,2 @@
+npx lint-staged
+python -m pre_commit run --hook-stage pre-commit

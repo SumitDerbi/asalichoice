@@ -51,15 +51,35 @@ select = [
     "B",   # flake8-bugbear
     "UP",  # pyupgrade
     "C4",  # flake8-comprehensions
+    "N",   # pep8-naming
+    "S",   # flake8-bandit (security)
+    "RUF", # ruff-specific rules
 ]
 ignore = [
     "E501",  # line length handled by black
+    "S101",  # `assert` is fine in tests; pytest relies on it
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/**/*.py" = ["B011"]
+"**/tests/**/*.py" = ["S105", "S106", "S311"]
+"**/test_*.py" = ["S105", "S106", "S311"]
+# Django/Wagtail conventions: Page subclasses and DRF views use mutable
+# class-level lists (content_panels, parent_page_types, http_method_names, etc.)
+# by design; RUF005/RUF012 fight the framework, so silence them in app models
+# and view layers.
+"**/models.py" = ["RUF005", "RUF012"]
+"**/views.py" = ["RUF005", "RUF012"]
+# Development settings legitimately bind 0.0.0.0 for container/host access.
+"**/settings/development.py" = ["S104"]
 
 [tool.ruff.lint.isort]
 # Mirror tool.isort.known_first_party so ruff and isort agree on grouping.
 known-first-party = ["config", "apps", "theme"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "-ra --strict-markers"
+testpaths = ["storefront", "backend"]

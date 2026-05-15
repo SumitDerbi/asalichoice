@@ -8,12 +8,25 @@
     "admin-ui"
   ],
   "scripts": {
+    "prepare": "husky",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
     "format": "npm run format --workspaces --if-present",
+    "format:check": "npm run format:check --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "e2e": "npm run e2e --workspaces --if-present"
+    "e2e": "npm run e2e --workspaces --if-present",
+    "stylelint": "stylelint \"admin-ui/**/*.{css,scss}\" --ignore-path .gitignore",
+    "commitlint": "commitlint --edit"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "stylelint": "^16.26.1",
+    "stylelint-config-standard": "^36.0.1"
   }
 }
