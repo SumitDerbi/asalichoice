@@ -104,8 +104,10 @@ agent_routing:
 # === MUTABLE BLOCK — agents update this ===
 state:
   current_phase: phase-0-foundation
-  current_step: plans/phase-0-foundation/000-repo-bootstrap.md
-  last_updated: 2026-05-14
-  last_actor: planning-bootstrap
+  current_step: plans/phase-0-foundation/002-frontend-react-setup.md
+  last_updated: 2026-05-15
+  last_actor: copilot
   notes:
     - Plans scaffolded. No implementation has begun.
+    - 000-repo-bootstrap.md complete (monorepo skeleton, root tooling).
+    - 001-backend-django-setup.md complete (Django 5.1.15 + DRF with split settings, JWT, OpenAPI, health endpoint, error envelope, pytest + ruff/black/isort green).
