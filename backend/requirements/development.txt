@@ -1,0 +1,17 @@
+# =============================================================================
+# AsliChoice — backend development requirements
+# -----------------------------------------------------------------------------
+# Installs everything in base.txt plus tooling for local development.
+# Use: `pip install -r requirements/development.txt`
+# =============================================================================
+
+-r base.txt
+
+pytest==8.3.4
+pytest-django==4.9.0
+factory-boy==3.3.1
+ruff==0.8.4
+black==26.3.1
+isort==5.13.2
+pre-commit==4.0.1
+ipython==8.30.0

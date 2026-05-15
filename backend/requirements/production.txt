@@ -1,0 +1,13 @@
+# =============================================================================
+# AsliChoice — backend production requirements
+# -----------------------------------------------------------------------------
+# Installs everything in base.txt plus production-only servers.
+# NOTE: cPanel deploys use Phusion Passenger via `passenger_wsgi.py`. Gunicorn
+#       is pinned here for parity with local production-shape runs and for any
+#       non-cPanel hosting.
+# =============================================================================
+
+-r base.txt
+
+gunicorn==23.0.0
+whitenoise==6.8.2

@@ -1,0 +1,4 @@
+# Procfile — for clarity / parity with Heroku-style runners.
+# Production deploys to cPanel use Phusion Passenger via `passenger_wsgi.py`.
+# Local production-shape runs can use: `gunicorn -c gunicorn.conf.py config.wsgi`.
+web: gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-3}
