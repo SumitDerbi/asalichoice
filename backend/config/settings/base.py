@@ -182,7 +182,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.DefaultPageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "apps.core.api.pagination.DefaultPageNumberPagination",
     "PAGE_SIZE": 25,
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -193,6 +193,9 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "apps.core.exceptions.envelope_exception_handler",
     "DEFAULT_THROTTLE_RATES": {
         "login": env("THROTTLE_LOGIN_RATE", default="5/min"),
+        "burst-anon": env("THROTTLE_ANON_RATE", default="60/min"),
+        "burst-user": env("THROTTLE_USER_RATE", default="120/min"),
+        "otp": env("THROTTLE_OTP_RATE", default="5/15min"),
     },
 }
 
@@ -225,6 +228,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
+    "POSTPROCESSING_HOOKS": [
+        "apps.core.api.openapi.add_error_envelope",
+    ],
 }
 
 # ---------------------------------------------------------------------------

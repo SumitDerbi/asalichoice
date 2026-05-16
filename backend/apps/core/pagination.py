@@ -1,35 +1,17 @@
-"""
-Pagination classes shared across the API.
+"""Backwards-compatible re-exports.
 
-Per ``plans/_conventions.md`` §5:
-- default page size: 25
-- max page size: 200
-- page-number pagination by default; ledger endpoints (Phase 1) will use
-  ``CursorPagination`` and live alongside this module.
+The canonical home for pagination classes is :mod:`apps.core.api.pagination`
+(added in plan 008). Keep this module for legacy imports and the
+``REST_FRAMEWORK`` settings string — both resolve to the same classes.
 """
 
 from __future__ import annotations
 
-from rest_framework.pagination import CursorPagination, PageNumberPagination
+import importlib
 
+_mod = importlib.import_module("apps.core.api.pagination")
+DefaultPageNumberPagination = _mod.DefaultPageNumberPagination
+LedgerCursorPagination = _mod.LedgerCursorPagination
+del importlib, _mod
 
-class DefaultPageNumberPagination(PageNumberPagination):
-    """Default page-number pagination for list endpoints."""
-
-    page_size = 25
-    page_size_query_param = "page_size"
-    max_page_size = 200
-
-
-class LedgerCursorPagination(CursorPagination):
-    """Cursor pagination for append-only ledger endpoints (inventory, finance, ...).
-
-    DRF's ``CursorPagination`` enforces a fixed ``page_size`` and does not
-    honour ``max_page_size`` or ``page_size_query_param``; if a configurable
-    page size is needed for a specific ledger, subclass this and override
-    ``get_page_size`` to clamp the requested size.
-    """
-
-    page_size = 50
-    ordering = "-id"
-    cursor_query_param = "cursor"
+__all__ = ["DefaultPageNumberPagination", "LedgerCursorPagination"]

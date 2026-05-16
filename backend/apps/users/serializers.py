@@ -8,6 +8,8 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.core.api import BaseModelSerializer
+
 from .models import User
 
 
@@ -39,8 +41,15 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Public representation of a user — never includes secrets."""
+class UserSerializer(BaseModelSerializer):
+    """Public representation of a user — never includes secrets.
+
+    Inherits :class:`apps.core.api.BaseModelSerializer` (plan 008) which
+    marks the BaseModel audit + soft-delete columns read-only by
+    default. All fields here happen to be read-only too — the serializer
+    is currently only used by ``GET`` endpoints — but the inheritance
+    documents the canonical pattern for module serializers.
+    """
 
     class Meta:
         model = User

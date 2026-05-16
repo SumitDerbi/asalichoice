@@ -24,6 +24,8 @@ from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 
+from .api.exceptions import DomainError
+
 # Mapping of DRF/Django exception classes to the error-code prefix and a
 # generic numeric suffix. Module-specific handlers (M01+) will register
 # more precise codes via their own service layer; this is the fallback.
@@ -66,6 +68,9 @@ def _code_for(exc: Exception, response_status: int) -> str:
 
 def envelope_exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
     """Wrap DRF's default handler with the AsliChoice error envelope."""
+    if isinstance(exc, DomainError):
+        return Response(exc.to_envelope(), status=exc.status)
+
     response = drf_exception_handler(exc, context)
     if response is None:
         # Unhandled exception — let Django's 500 handler take over so that
