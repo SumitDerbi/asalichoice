@@ -28,6 +28,7 @@ SEEDERS: tuple[str, ...] = (
     "seed_default_currency",
     "seed_default_timezone",
     "seed_default_branch",
+    "seed_master",
 )
 
 

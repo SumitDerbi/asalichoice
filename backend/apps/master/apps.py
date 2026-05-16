@@ -1,0 +1,12 @@
+"""App config for ``apps.master`` (M01)."""
+
+from __future__ import annotations
+
+from django.apps import AppConfig
+
+
+class MasterConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.master"
+    label = "master"
+    verbose_name = "Master Management"
