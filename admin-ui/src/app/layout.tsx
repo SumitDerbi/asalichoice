@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, LogOut, Menu, Moon, Search, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/lib/auth/store';
 import { currentBranch, useBranchStore } from '@/lib/branch/store';
 import { useThemeStore } from '@/lib/theme/store';
@@ -241,8 +243,32 @@ function Breadcrumbs() {
 
 function BranchSwitcher() {
   const branches = useBranchStore((s) => s.branches);
+  const setBranches = useBranchStore((s) => s.setBranches);
   const setCurrentBranchId = useBranchStore((s) => s.setCurrentBranchId);
   const active = useBranchStore(currentBranch);
+  const isAuthenticated = useAuthStore((s) => Boolean(s.accessToken));
+
+  // Hydrate the branch list from the backend once authenticated. Falls
+  // back silently to the persisted defaults when the request fails so
+  // the switcher remains usable offline / during initial bootstrap.
+  const { data } = useQuery<Array<{ id: number; code: string; name: string }>>({
+    queryKey: ['master', 'branches', 'switcher'],
+    enabled: isAuthenticated,
+    queryFn: async () => {
+      const res = await apiClient.get<
+        | Array<{ id: number; code: string; name: string }>
+        | { results: Array<{ id: number; code: string; name: string }> }
+      >('/master/branches/?is_active=true');
+      return Array.isArray(res.data) ? res.data : (res.data.results ?? []);
+    },
+    staleTime: 60_000,
+  });
+
+  React.useEffect(() => {
+    if (!data || data.length === 0) return;
+    setBranches(data.map((b) => ({ id: b.id, code: b.code, name: b.name })));
+  }, [data, setBranches]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

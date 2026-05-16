@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/lib/auth/store';
+import { useBranchStore } from '@/lib/branch/store';
 import { ApiError, type ApiErrorPayload } from './errors';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
@@ -26,6 +27,11 @@ apiClient.interceptors.request.use((config) => {
   if (access) {
     config.headers = config.headers ?? {};
     (config.headers as Record<string, string>).Authorization = `Bearer ${access}`;
+  }
+  const branchId = useBranchStore.getState().currentBranchId;
+  if (branchId != null) {
+    config.headers = config.headers ?? {};
+    (config.headers as Record<string, string>)['X-Branch-Id'] = String(branchId);
   }
   return config;
 });
