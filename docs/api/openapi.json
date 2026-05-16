@@ -1,0 +1,9 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AsliChoice API (placeholder)",
+    "version": "0.0.0",
+    "description": "Placeholder OpenAPI document. Run `python docs/scripts/fetch-openapi.py` against a running backend to overwrite this file with the live schema."
+  },
+  "paths": {}
+}

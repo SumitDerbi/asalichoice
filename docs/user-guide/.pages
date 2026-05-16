@@ -1,0 +1,6 @@
+nav:
+  - Overview: index.md
+  - Branch Staff: branch-staff.md
+  - Branch Manager: branch-manager.md
+  - Accountant: accountant.md
+  - Super Admin: super-admin.md

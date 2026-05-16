@@ -2,7 +2,7 @@
 
 Single forms pattern for the admin UI. **TanStack Form** owns state,
 **Zod** owns schemas, and the shared primitives in
-[`admin-ui/src/lib/forms`](../../admin-ui/src/lib/forms) wire them together
+[`admin-ui/src/lib/forms`](https://github.com/SumitDerbi/asalichoice/tree/main/admin-ui/src/lib/forms) wire them together
 with shadcn inputs + error mapping from the API envelope.
 
 ## Quick start
@@ -167,7 +167,7 @@ body slot is yours.
 ### Destructive confirmations
 
 Wire `<ConfirmDialog>` (from
-[`components/shared/confirm-dialog.tsx`](../../admin-ui/src/components/shared/confirm-dialog.tsx))
+[`components/shared/confirm-dialog.tsx`](https://github.com/SumitDerbi/asalichoice/blob/main/admin-ui/src/components/shared/confirm-dialog.tsx))
 around delete buttons. Forms only fire the destructive action once the
 dialog resolves.
 
@@ -187,12 +187,12 @@ Exports per entity:
 - `xxxFiltersSchema` — for list-page filter bars.
 
 The login form keeps its schemas at
-[`modules/auth/schemas.ts`](../../admin-ui/src/modules/auth/schemas.ts) as
+[`modules/auth/schemas.ts`](https://github.com/SumitDerbi/asalichoice/blob/main/admin-ui/src/modules/auth/schemas.ts) as
 a working reference.
 
 ## Testing
 
-See [`admin-ui/tests/forms/`](../../admin-ui/tests/forms) for canonical
+See [`admin-ui/tests/forms/`](https://github.com/SumitDerbi/asalichoice/tree/main/admin-ui/tests/forms) for canonical
 patterns:
 
 - `schema-and-mapper.test.ts` — schemas, validators, and the API

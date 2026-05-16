@@ -1,7 +1,7 @@
 # API Conventions
 
 > Audience: AsliChoice module authors + API consumers. Source of truth:
-> [`plans/_conventions.md`](../../plans/_conventions.md) §5. This page
+> [`plans/_conventions.md`](https://github.com/SumitDerbi/asalichoice/blob/main/plans/_conventions.md) §5. This page
 > mirrors the contract in user-facing form.
 
 ## Base URL

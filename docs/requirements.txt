@@ -1,0 +1,12 @@
+# Documentation site dependencies. Install into any Python 3.11+ env:
+#   python -m pip install -r docs/requirements.txt
+# Then build / serve:
+#   python -m mkdocs serve -f docs/mkdocs.yml
+#   python -m mkdocs build -f docs/mkdocs.yml --strict
+# Pinned to 9.5.x: 9.6+ injects an unsuppressable promotional notice that
+# trips `mkdocs build --strict`.
+mkdocs-material>=9.5,<9.6
+mkdocs-mermaid2-plugin>=1.1,<2
+mkdocs-redirects>=1.2,<2
+mkdocs-swagger-ui-tag>=0.6,<1
+mkdocs-awesome-pages-plugin>=2.9,<3
