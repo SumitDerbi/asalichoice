@@ -15,6 +15,12 @@ class BranchCodeDuplicate(DomainError):  # noqa: N818
     default_status = 409
 
 
+class BranchAccessDenied(DomainError):  # noqa: N818
+    default_code = "MST-002"
+    default_message = "You cannot access this branch."
+    default_status = 403
+
+
 class CategoryDepthExceeded(DomainError):  # noqa: N818
     default_code = "MST-010"
     default_message = "Category hierarchy exceeds maximum depth."
@@ -40,6 +46,7 @@ class PincodeNotInZone(DomainError):  # noqa: N818
 
 
 __all__ = [
+    "BranchAccessDenied",
     "BranchCodeDuplicate",
     "BranchDepthExceeded",
     "CategoryDepthExceeded",

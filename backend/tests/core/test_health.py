@@ -7,6 +7,10 @@ from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
+# Health now reports live master-entity counts (M01/03 §6), so each test
+# needs DB access.
+pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture
 def api_client() -> APIClient:

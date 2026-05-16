@@ -90,6 +90,8 @@ MIDDLEWARE = [
     # Must run after AuthenticationMiddleware so request.user is populated
     # before we snapshot it into the request context.
     "apps.core.audit.middleware.RequestContextMiddleware",
+    # Resolves the X-Branch-Id header into the active branch (M01/03).
+    "apps.master.middleware.BranchContextMiddleware",
 ]
 
 # ---------------------------------------------------------------------------

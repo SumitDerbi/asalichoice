@@ -38,6 +38,10 @@ class HealthView(APIView):
                     "status": {"type": "string", "example": "ok"},
                     "version": {"type": "string", "example": "1.0.0"},
                     "time": {"type": "string", "format": "date-time"},
+                    "masters": {
+                        "type": "object",
+                        "additionalProperties": {"type": "integer"},
+                    },
                 },
                 "required": ["status", "version", "time"],
             }
@@ -49,6 +53,12 @@ class HealthView(APIView):
                     "status": "ok",
                     "version": "1.0.0",
                     "time": "2026-05-15T02:56:29Z",
+                    "masters": {
+                        "branches": 1,
+                        "taxes": 3,
+                        "categories": 12,
+                        "brands": 8,
+                    },
                 },
                 response_only=True,
             )
@@ -63,6 +73,22 @@ class HealthView(APIView):
                 "status": "ok",
                 "version": getattr(settings, "APP_VERSION", "0.0.0"),
                 "time": now_utc.isoformat().replace("+00:00", "Z"),
+                "masters": _master_counts(),
             },
             status=status.HTTP_200_OK,
         )
+
+
+def _master_counts() -> dict[str, int]:
+    """Return live counts of core master entities for the health probe."""
+
+    try:
+        from apps.master.models import Branch, Brand, Category, Tax
+    except Exception:  # pragma: no cover - master app may be uninstalled
+        return {}
+    return {
+        "branches": Branch.objects.filter(is_active=True).count(),
+        "taxes": Tax.objects.filter(is_active=True).count(),
+        "categories": Category.objects.filter(is_active=True).count(),
+        "brands": Brand.objects.filter(is_active=True).count(),
+    }

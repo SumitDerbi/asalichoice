@@ -63,6 +63,7 @@ class Command(BaseCommand):
         self._seed_taxes()
         self._seed_payment_modes()
         self._seed_branch()
+        self._seed_settings()
 
         self.stdout.write(self.style.SUCCESS("seed_master: completed."))
 
@@ -143,6 +144,54 @@ class Command(BaseCommand):
             },
         )
         self.stdout.write("  branch: HQ ensured")
+
+    def _seed_settings(self) -> None:
+        """Wire master defaults into ``SiteSetting`` rows (M01/03 §4)."""
+
+        try:
+            from apps.system_settings.models import SettingScope, SiteSetting
+        except Exception:  # pragma: no cover - app not installed
+            self.stdout.write("  settings: system_settings unavailable; skipped")
+            return
+
+        default_branch = Branch.objects.filter(code=DEFAULT_BRANCH["code"]).first()
+        default_tax = Tax.objects.filter(code="GST18").first()
+        default_payment = PaymentMode.objects.filter(code="CASH").first()
+
+        pairs: list[tuple[str, object, str]] = []
+        if default_branch is not None:
+            pairs.append(
+                (
+                    "default.branch_id",
+                    default_branch.pk,
+                    "Default branch id used when no X-Branch-Id header is sent.",
+                )
+            )
+        if default_tax is not None:
+            pairs.append(
+                (
+                    "default.tax_slab",
+                    default_tax.code,
+                    "Default tax slab applied to new SKUs without an explicit tax.",
+                )
+            )
+        if default_payment is not None:
+            pairs.append(
+                (
+                    "default.pos_payment_mode",
+                    default_payment.code,
+                    "Default POS payment mode pre-selected at checkout.",
+                )
+            )
+
+        for key, value, description in pairs:
+            SiteSetting.objects.get_or_create(
+                key=key,
+                scope=SettingScope.GLOBAL,
+                branch_id=None,
+                defaults={"value_json": value, "description": description},
+            )
+        self.stdout.write(f"  settings: {len(pairs)} master defaults ensured")
 
     # ------------------------------------------------------------------ #
     def _reset(self) -> None:

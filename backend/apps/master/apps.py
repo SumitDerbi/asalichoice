@@ -10,3 +10,7 @@ class MasterConfig(AppConfig):
     name = "apps.master"
     label = "master"
     verbose_name = "Master Management"
+
+    def ready(self) -> None:
+        # Importing connects @receiver hooks.
+        from . import signals  # noqa: F401
