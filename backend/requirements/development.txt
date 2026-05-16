@@ -10,6 +10,10 @@
 pytest==8.3.4
 pytest-django==4.9.0
 pytest-cov==6.0.0
+# Pin coverage to a release that ships the C tracer wheel on Windows/Py3.10.
+# 7.14.0 fell back to the pure-Python tracer (sys.settrace) which breaks
+# Django's admin LazyObject resolution during autodiscover.
+coverage==7.6.10
 factory-boy==3.3.1
 ruff==0.8.4
 black==26.3.1
