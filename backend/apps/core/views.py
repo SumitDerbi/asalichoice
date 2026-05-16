@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import UTC
+try:
+    from datetime import UTC  # Python 3.11+
+except ImportError:  # pragma: no cover - Python 3.10 fallback
+    UTC = UTC
 
 from django.conf import settings
 from django.utils import timezone

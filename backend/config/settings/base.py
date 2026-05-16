@@ -243,6 +243,16 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOW_CREDENTIALS = env.bool("CORS_ALLOW_CREDENTIALS", default=True)
 
+# Custom request headers used by the admin-ui (in addition to the corsheaders
+# defaults like authorization, content-type, etc.).
+from corsheaders.defaults import default_headers as _cors_default_headers  # noqa: E402
+
+CORS_ALLOW_HEADERS = (
+    *_cors_default_headers,
+    "x-branch-id",
+    "idempotency-key",
+)
+
 # ---------------------------------------------------------------------------
 # Logging — minimal sane default; overridden per environment.
 # ---------------------------------------------------------------------------
