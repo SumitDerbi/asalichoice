@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "AsliChoice — System Settings",
+    "_postman_id": "9c2f6a1e-1d34-4f0f-8a4a-013-system-settings",
+    "description": "Site settings + feature toggles + integration keys (plan 013).\n\nRequires a super-admin access token. Run the `AsliChoice — Auth` collection's `Login` first with super-admin credentials so `{{access}}` is set.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List settings",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/system-settings/",
+          "host": ["{{baseUrl}}"],
+          "path": ["system-settings", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create setting",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/system-settings/",
+          "host": ["{{baseUrl}}"],
+          "path": ["system-settings", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"key\": \"qa.demo.flag\",\n  \"value_json\": 42,\n  \"scope\": \"global\",\n  \"description\": \"Postman smoke row.\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.environment.set('settingId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create integration key",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{access}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/integration-keys/",
+          "host": ["{{baseUrl}}"],
+          "path": ["integration-keys", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"provider\": \"qa-demo\",\n  \"key_name\": \"api_key\",\n  \"value\": \"super-secret-value\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('value masked in response', () => {",
+              "  pm.expect(pm.response.json().value).to.eql('***');",
+              "});",
+              "pm.environment.set('integrationId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reveal integration key",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/integration-keys/{{integrationId}}/reveal/",
+          "host": ["{{baseUrl}}"],
+          "path": ["integration-keys", "{{integrationId}}", "reveal", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('plaintext returned', () => {",
+              "  pm.expect(pm.response.json().value).to.eql('super-secret-value');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

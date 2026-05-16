@@ -67,6 +67,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.core",
     "apps.users",
+    "apps.system_settings",
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -277,3 +278,15 @@ AUDIT_RETENTION_YEARS = env.int("AUDIT_RETENTION_YEARS", default=7)
 # updates / deletes at the application layer. Test fixtures may flip it
 # off temporarily; production must leave it True.
 LEDGER_IMMUTABLE = env.bool("LEDGER_IMMUTABLE", default=True)
+
+# ---------------------------------------------------------------------------
+# System-settings encryption key (plan 013)
+# ---------------------------------------------------------------------------
+# Fernet key used to encrypt :class:`apps.system_settings.models.IntegrationKey`
+# values at rest. Generate with::
+#
+#     python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+#
+# Leave blank in dev — the app derives a Fernet key from ``SECRET_KEY``
+# as a fallback. Production **must** set this explicitly.
+SETTINGS_FERNET_KEY = env("SETTINGS_FERNET_KEY", default="")
