@@ -9,6 +9,22 @@ M04 inventory, …) FKs into one of these entities.
 ![services-coverage](https://img.shields.io/badge/services_coverage-85.45%25-brightgreen)
 ![overall-coverage](https://img.shields.io/badge/apps.master_coverage-88.69%25-brightgreen)
 
+## Scope
+
+In scope:
+
+- Geography lookups (countries, states, cities, pincodes, zones).
+- Organisation entities (branches, departments, designations, warehouses).
+- Catalog support data (units of measure, HSN codes, categories, brands).
+- Finance lookups (taxes with GST components, payment modes per branch).
+- Read-only public API and an authenticated admin API for the same models.
+
+Out of scope (handled by later modules):
+
+- User accounts, roles, permissions enforcement (M02).
+- Product master and pricing (M03).
+- Stock ledgers and warehouse movements (M04).
+
 ## Entities
 
 | Group        | Models                                                     |
@@ -21,6 +37,25 @@ M04 inventory, …) FKs into one of these entities.
 All models inherit `apps.core.models.BaseModel` → soft-delete + audit
 timestamps + `created_by` / `updated_by`. Use `<Model>.all_objects` to
 include soft-deleted rows.
+
+## Entity relationships
+
+```mermaid
+erDiagram
+    Country ||--o{ State : has
+    State ||--o{ City : has
+    City ||--o{ Pincode : has
+    Zone ||--o{ Pincode : "covers"
+    Branch ||--o{ Department : has
+    Branch ||--o{ Warehouse : has
+    Branch ||--o{ Branch : "parent / child"
+    Department ||--o{ Designation : has
+    Category ||--o{ Category : "parent / child"
+    Brand ||--o{ Category : "preferred for"
+    HSNCode }o--|| Tax : "default tax"
+    Tax ||--o{ HSNCode : "applies to"
+    Branch ||--o{ PaymentMode : "enabled at"
+```
 
 ## Public API
 
@@ -75,3 +110,11 @@ Two files are intentionally uncovered for now:
 | ---------------- | ------------------------------------------------------------------- |
 | `cache.py`       | Thin TTL wrapper; will be replaced by Redis in M18.                 |
 | `permissions.py` | Branch-scoped DRF permission helpers; exercised via M02 RBAC tests. |
+
+## See also
+
+- [User guide](user-guide.md) — admin-UI walkthroughs.
+- [Developer guide](developer-guide.md) — integrating with `apps.master`.
+- [Error codes](error-codes.md) — `MST-*` envelope reference.
+- [ADR-003 — Branch context](../../adr/003-branch-context.md)
+- [ADR-004 — Tax components](../../adr/004-tax-components.md)

@@ -3,3 +3,5 @@ nav:
   - Template: 000-template.md
   - 001 — Migrations: 001-migrations.md
   - 002 — Service Layer: 002-service-layer.md
+  - 003 — Branch Context: 003-branch-context.md
+  - 004 — Tax Components: 004-tax-components.md

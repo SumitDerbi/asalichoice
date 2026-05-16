@@ -1,4 +1,4 @@
 nav:
   - Overview: index.md
-  - Master Management: master.md
+  - Master Management: master
   - System Settings: system-settings.md

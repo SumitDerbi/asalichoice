@@ -4,7 +4,7 @@ One page per Mxx module will land here as each one ships. The canonical executio
 
 | Module                          | Status  | Plan                             |
 | ------------------------------- | ------- | -------------------------------- |
-| M01 — Branches & locations      | pending | `plans/phase-1-modules/M01-*.md` |
+| M01 — Branches & locations      | done    | [`master/`](master/index.md)     |
 | M02 — Users, roles, permissions | pending | `plans/phase-1-modules/M02-*.md` |
 | M03 — Customers                 | pending | `plans/phase-1-modules/M03-*.md` |
 | M04 — Vendors                   | pending | `plans/phase-1-modules/M04-*.md` |
