@@ -1,65 +1,55 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, Form, runSubmit, useAppForm } from '@/lib/forms';
 import { useAuthStore } from '@/lib/auth/store';
-import { ApiError } from '@/lib/api/errors';
+import { loginSchema, type LoginValues } from './schemas';
 
 const APP_NAME = import.meta.env.VITE_APP_NAME ?? 'AsliChoice Admin';
+const KNOWN_FIELDS = ['email', 'password'] as const;
 
-const loginSchema = z.object({
-  email: z.string().email('Enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
-type FieldErrors = Partial<Record<keyof LoginValues, string>>;
+function pickFieldErrorMap(errorMap: unknown): Record<string, unknown> | undefined {
+  if (!errorMap || typeof errorMap !== 'object') return undefined;
+  const map = errorMap as Record<string, unknown>;
+  for (const key of ['onChange', 'onBlur', 'onSubmit'] as const) {
+    const value = map[key];
+    if (value && typeof value === 'object') return value as Record<string, unknown>;
+  }
+  return undefined;
+}
 
 /**
- * Email + password sign-in. Posts to ``/api/v1/auth/login/`` via the
- * auth store, persists tokens, then routes to the dashboard.
+ * Email + password sign-in. Posts to ``/api/v1/auth/login/`` via the auth
+ * store, persists tokens, then routes to the dashboard. Uses the unified
+ * ``<Form>`` + ``<Field>`` pattern from ``lib/forms``.
  */
 export function LoginPage() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
-  const [errors, setErrors] = React.useState<FieldErrors>({});
   const [submitting, setSubmitting] = React.useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const payload = {
-      email: String(data.get('email') ?? '').trim(),
-      password: String(data.get('password') ?? ''),
-    };
-    const parsed = loginSchema.safeParse(payload);
-    if (!parsed.success) {
-      const next: FieldErrors = {};
-      for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as keyof LoginValues | undefined;
-        if (key && !next[key]) next[key] = issue.message;
+  const form = useAppForm<LoginValues>({
+    schema: loginSchema,
+    defaultValues: { email: '', password: '' },
+    async onSubmit({ value }) {
+      setSubmitting(true);
+      try {
+        const ok = await runSubmit(value, {
+          action: async (vals) => {
+            await login(vals.email.trim(), vals.password);
+          },
+          successMessage: null,
+          knownFields: KNOWN_FIELDS,
+        });
+        if (ok) navigate('/', { replace: true });
+      } finally {
+        setSubmitting(false);
       }
-      setErrors(next);
-      return;
-    }
-    setErrors({});
-    setSubmitting(true);
-    try {
-      await login(parsed.data.email, parsed.data.password);
-      navigate('/', { replace: true });
-    } catch (err) {
-      if (err instanceof ApiError) {
-        toast.error(err.message);
-      } else {
-        toast.error('Unexpected error. Please try again.');
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
+    },
+  });
+
+  const errorMap = form.useStore((s) => s.errorMap);
+  const errorMapForFields = pickFieldErrorMap(errorMap);
 
   return (
     <div className="grid min-h-screen place-items-center bg-muted/30 p-4">
@@ -68,43 +58,38 @@ export function LoginPage() {
           <h1 className="text-xl font-semibold tracking-tight">Sign in</h1>
           <p className="text-sm text-muted-foreground">{APP_NAME}</p>
         </div>
-        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="username"
-              aria-invalid={errors.email ? true : undefined}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-            />
-            {errors.email && (
-              <p id="email-error" className="text-xs text-destructive">
-                {errors.email}
-              </p>
+        <Form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void form.handleSubmit();
+          }}
+        >
+          <form.Field name="email">
+            {(field) => (
+              <Field
+                field={field}
+                label="Email"
+                type="email"
+                autoComplete="username"
+                formErrorMap={errorMapForFields}
+              />
             )}
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              aria-invalid={errors.password ? true : undefined}
-              aria-describedby={errors.password ? 'password-error' : undefined}
-            />
-            {errors.password && (
-              <p id="password-error" className="text-xs text-destructive">
-                {errors.password}
-              </p>
+          </form.Field>
+          <form.Field name="password">
+            {(field) => (
+              <Field
+                field={field}
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                formErrorMap={errorMapForFields}
+              />
             )}
-          </div>
+          </form.Field>
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? 'Signing in...' : 'Sign in'}
           </Button>
-        </form>
+        </Form>
       </div>
     </div>
   );
