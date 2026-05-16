@@ -15,6 +15,8 @@
     "format:check": "npm run format:check --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "e2e": "npm run e2e --workspaces --if-present",
+    "postman": "node scripts/postman-run.mjs",
+    "postman:staging": "node scripts/postman-run.mjs --env staging",
     "stylelint": "stylelint \"admin-ui/**/*.{css,scss}\" --ignore-path .gitignore",
     "commitlint": "commitlint --edit"
   },

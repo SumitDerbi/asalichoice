@@ -39,5 +39,13 @@ export default tseslint.config(
       'react/no-unknown-property': ['error', { ignore: ['cmdk-input-wrapper'] }],
     },
   },
+  {
+    // Playwright fixtures expose a `use` parameter to spec files; the
+    // react-hooks rule mis-classifies it as a hook call. Disable inside e2e.
+    files: ['**/e2e/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
   prettier,
 );

@@ -55,18 +55,18 @@ asalichoice/
 
 ## 4. Naming
 
-| Thing | Style | Example |
-|---|---|---|
-| Python modules / packages | snake_case | `inventory_ledger` |
-| Django apps | snake_case | `master_management` |
-| Models | PascalCase singular | `ProductVariant` |
-| DB tables | snake_case plural | `product_variants` |
-| API routes | kebab-case, plural | `/api/v1/product-variants/` |
-| TS files | kebab-case | `product-variant-form.tsx` |
-| React components | PascalCase | `ProductVariantForm` |
-| Hooks | `use` prefix | `useProductVariants` |
-| Query keys | tuple-arrays | `['product-variants', { branchId }]` |
-| ENV vars | UPPER_SNAKE | `DB_PASSWORD` |
+| Thing                     | Style               | Example                              |
+| ------------------------- | ------------------- | ------------------------------------ |
+| Python modules / packages | snake_case          | `inventory_ledger`                   |
+| Django apps               | snake_case          | `master_management`                  |
+| Models                    | PascalCase singular | `ProductVariant`                     |
+| DB tables                 | snake_case plural   | `product_variants`                   |
+| API routes                | kebab-case, plural  | `/api/v1/product-variants/`          |
+| TS files                  | kebab-case          | `product-variant-form.tsx`           |
+| React components          | PascalCase          | `ProductVariantForm`                 |
+| Hooks                     | `use` prefix        | `useProductVariants`                 |
+| Query keys                | tuple-arrays        | `['product-variants', { branchId }]` |
+| ENV vars                  | UPPER_SNAKE         | `DB_PASSWORD`                        |
 
 ## 5. API conventions
 
@@ -82,26 +82,26 @@ asalichoice/
   | Prefix | Domain |
   |---|---|
   | `AUTH` | authentication / OTP |
-  | `USR`  | users / roles / permissions |
-  | `MST`  | master data (products, taxes, units…) |
-  | `VEN`  | vendor |
-  | `PUR`  | purchase / GRN |
-  | `INV`  | inventory |
-  | `POS`  | retail POS |
-  | `ONL`  | online store |
-  | `SAL`  | sales / orders |
-  | `CRM`  | customer / CRM |
-  | `REF`  | referral / wallet |
-  | `NTF`  | notifications |
-  | `FIN`  | finance / ledger |
-  | `RPT`  | reports |
-  | `DEL`  | delivery / fulfillment |
-  | `RET`  | returns / QC |
-  | `HR`   | HR / payroll |
-  | `DOC`  | documents / media |
-  | `CFG`  | system settings |
-  | `SEC`  | super admin / audit |
-  | `API`  | api / sync / device |
+  | `USR` | users / roles / permissions |
+  | `MST` | master data (products, taxes, units…) |
+  | `VEN` | vendor |
+  | `PUR` | purchase / GRN |
+  | `INV` | inventory |
+  | `POS` | retail POS |
+  | `ONL` | online store |
+  | `SAL` | sales / orders |
+  | `CRM` | customer / CRM |
+  | `REF` | referral / wallet |
+  | `NTF` | notifications |
+  | `FIN` | finance / ledger |
+  | `RPT` | reports |
+  | `DEL` | delivery / fulfillment |
+  | `RET` | returns / QC |
+  | `HR` | HR / payroll |
+  | `DOC` | documents / media |
+  | `CFG` | system settings |
+  | `SEC` | super admin / audit |
+  | `API` | api / sync / device |
 - **Idempotency**: mutating endpoints accept `Idempotency-Key` header.
 - **Audit**: every write goes through a service layer that emits an audit entry.
 
@@ -122,6 +122,7 @@ asalichoice/
 ## 7. No hardcoding
 
 If a value can change without code changes, it lives in DB or `SystemSetting`:
+
 - Taxes, currencies, payment modes, OTP length/expiry, delivery zones, MOV, fees, branch info, offer rules, role permissions, feature toggles, integration API keys.
 - Admin panel exposes a **Settings** module (M18) for managing these.
 
@@ -145,6 +146,8 @@ If a value can change without code changes, it lives in DB or `SystemSetting`:
 - **E2E**: Playwright spec per critical user journey (login, POS bill, online order, GRN, refund).
 - **Coverage gate**: 70% line coverage minimum per module. Tests for `services/` ≥ 85%.
 
+> See [`docs/quality/testing.md`](../docs/quality/testing.md) for the active runner config, shared fixtures, MSW handlers, Playwright `authedPage` fixture, and the `scripts/test-all.*` orchestration.
+
 ## 10. Documentation
 
 - **MkDocs Material** in `docs/`. One section per module: API, UI guide, user guide.
@@ -157,30 +160,38 @@ If a value can change without code changes, it lives in DB or `SystemSetting`:
 ```markdown
 # <plan-id> — <Title>
 
-> Phase: <phase>  Depends on: <prev-id>  Module: <Mxx | -- >
+> Phase: <phase> Depends on: <prev-id> Module: <Mxx | -- >
 
 ## Goal
+
 1–3 sentences.
 
 ## Inputs (prerequisites)
+
 Bulleted artefacts that must already exist.
 
 ## Steps
+
 Numbered, small (≤ 1 day each). Each step lists files touched / commands run.
 
 ## Deliverables
+
 Concrete artefacts (files, endpoints, migrations, tests).
 
 ## Verification
+
 - **Manual**: ordered list of click-throughs / curl commands.
 - **Automated**: which test files must pass + commands.
 
 ## Definition of Done
+
 Checklist of binary conditions.
 
 ## Next step
+
 Link to the next plan file.
 
 ## Previous step
+
 Link to the previous plan file.
 ```

@@ -1,0 +1,23 @@
+[run]
+branch = True
+source = apps
+omit =
+    */migrations/*
+    */management/commands/*
+    */admin.py
+    */apps.py
+    */urls.py
+    */__init__.py
+    */tests/*
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+fail_under = 70
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    \.\.\.

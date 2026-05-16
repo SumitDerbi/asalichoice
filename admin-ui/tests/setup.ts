@@ -1,6 +1,16 @@
 import '@testing-library/jest-dom/vitest';
-import { afterEach, beforeEach, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { server } from '@/test/mocks/server';
+
+beforeAll(() => {
+  // Bypass unmocked requests so tests that don't care about HTTP don't fail loudly.
+  server.listen({ onUnhandledRequest: 'bypass' });
+});
+
+afterAll(() => {
+  server.close();
+});
 
 beforeEach(() => {
   // jsdom provides no matchMedia; some Radix primitives consult it.
@@ -36,5 +46,6 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  server.resetHandlers();
   vi.restoreAllMocks();
 });

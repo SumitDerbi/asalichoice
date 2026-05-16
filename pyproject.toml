@@ -24,7 +24,7 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
-known_first_party = ["config", "apps", "theme"]
+known_first_party = ["config", "apps", "theme", "tests"]
 skip = [".venv", "venv", "build", "dist", "node_modules", "staticfiles", "media"]
 
 [tool.ruff]
@@ -76,7 +76,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 # Mirror tool.isort.known_first_party so ruff and isort agree on grouping.
-known-first-party = ["config", "apps", "theme"]
+known-first-party = ["config", "apps", "theme", "tests"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.development"
