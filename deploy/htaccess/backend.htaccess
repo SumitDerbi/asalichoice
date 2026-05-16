@@ -1,0 +1,35 @@
+# =============================================================================
+# AsliChoice — backend API (.htaccess)
+# Place at: <backend app dir>/.htaccess
+#
+# Phusion Passenger handles WSGI binding via cPanel's Python App config. This
+# file only adds security hardening + cache hints for the API surface.
+# =============================================================================
+
+Options -Indexes
+
+# -----------------------------------------------------------------------------
+# Force HTTPS
+# -----------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# Security headers (API responses)
+# -----------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set Referrer-Policy "no-referrer"
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# Deny access to source / config artifacts
+# -----------------------------------------------------------------------------
+<FilesMatch "(^\.|\.env$|\.py$|\.pyc$|\.sqlite3$|Procfile|requirements.*\.txt)">
+    Require all denied
+</FilesMatch>
