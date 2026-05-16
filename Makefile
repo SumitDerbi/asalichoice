@@ -1,7 +1,7 @@
 # AsliChoice — Makefile (Linux / macOS / WSL).
 # Windows users: prefer scripts/test-all.ps1.
 
-.PHONY: help test test-backend test-frontend test-e2e test-postman lint format clean
+.PHONY: help test test-backend test-frontend test-e2e test-postman lint format clean seed
 
 help:
 	@echo "Targets:"
@@ -12,6 +12,7 @@ help:
 	@echo "  make test-postman   Newman over qa/postman/*"
 	@echo "  make lint           Python ruff + ESLint"
 	@echo "  make format         ruff format + prettier"
+	@echo "  make seed           Run all phase-0 seeders (idempotent)"
 
 test:
 	bash scripts/test-all.sh
@@ -38,3 +39,6 @@ format:
 
 clean:
 	rm -rf admin-ui/dist admin-ui/coverage backend/.coverage backend/htmlcov
+
+seed:
+	cd backend && python manage.py seed_all
