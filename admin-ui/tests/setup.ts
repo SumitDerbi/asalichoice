@@ -19,6 +19,19 @@ beforeEach(() => {
       })),
     });
   }
+  // jsdom doesn't ship ResizeObserver; cmdk + Radix use it.
+  if (!('ResizeObserver' in window)) {
+    class RO {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    (window as unknown as { ResizeObserver: typeof RO }).ResizeObserver = RO;
+    (globalThis as unknown as { ResizeObserver: typeof RO }).ResizeObserver = RO;
+  }
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = function () {};
+  }
 });
 
 afterEach(() => {

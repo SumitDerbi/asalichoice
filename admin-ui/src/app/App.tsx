@@ -1,10 +1,15 @@
 import * as React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { AppShell } from './layout';
-import { LoginPage } from '@/modules/auth/login-page';
-import { DashboardPage } from '@/modules/dashboard/dashboard-page';
-import { useAuthStore } from '@/lib/auth/store';
 import type { ReactElement } from 'react';
+import { AppShell } from './layout';
+import { AppErrorBoundary } from './error-boundary';
+import { ForbiddenPage, NotFoundPage } from './status-pages';
+import { LoginPage } from '@/modules/auth/login-page';
+import { useAuthStore } from '@/lib/auth/store';
+import { listRoutes } from './module-registry';
+import { registerAllModules } from './register-modules';
+
+registerAllModules();
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const access = useAuthStore((s) => s.accessToken);
@@ -22,31 +27,29 @@ function RequireAuth({ children }: { children: ReactElement }) {
 }
 
 export default function App() {
+  const moduleRoutes = listRoutes();
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route
-        element={
-          <RequireAuth>
-            <AppShell />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<DashboardPage />} />
-        <Route path="/masters" element={<PlaceholderPage title="Masters" />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="text-sm text-muted-foreground">
-        This module will be implemented in a later phase. See <code>plans/phase-1-modules/</code>.
-      </p>
-    </div>
+    <AppErrorBoundary>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/403" element={<ForbiddenPage />} />
+        <Route
+          element={
+            <RequireAuth>
+              <AppShell />
+            </RequireAuth>
+          }
+        >
+          {moduleRoutes.map((r, i) =>
+            r.index ? (
+              <Route key={`idx-${i}`} index element={r.element} />
+            ) : (
+              <Route key={r.path ?? `p-${i}`} path={r.path} element={r.element} />
+            ),
+          )}
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </AppErrorBoundary>
   );
 }

@@ -6,7 +6,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
 import App from './app/App';
 import { queryClient } from './lib/api/query-client';
+import { bootstrapTheme } from './lib/theme/store';
 import './styles/globals.css';
+
+bootstrapTheme();
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {
