@@ -18,6 +18,8 @@ from django.core.checks import Warning as DjangoWarning
 BASE_MODEL_EXEMPTIONS: set[str] = {
     # Audit log is append-only and must not soft-delete itself.
     "core.AuditLog",
+    # Vendor ledger entries are immutable financial postings (LedgerEntry).
+    "purchase.VendorLedger",
 }
 
 
