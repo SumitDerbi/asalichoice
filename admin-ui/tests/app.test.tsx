@@ -21,9 +21,9 @@ describe('App smoke', () => {
     expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it('renders the login form with email and password fields', () => {
+  it('renders the login form with identifier and password fields', () => {
     renderApp(['/login']);
-    expect(screen.getByLabelText(/^email$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email.*mobile.*employee/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });

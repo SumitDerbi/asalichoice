@@ -13,12 +13,16 @@ export interface AuthUser {
   id: number;
   email: string;
   mobile: string;
+  employee_code?: string;
+  primary_identifier?: string;
   name: string;
   display_name: string;
   is_staff: boolean;
   is_superuser: boolean;
   is_active: boolean;
   date_joined: string;
+  permissions?: string[];
+  branches?: Array<{ branch_id: number; is_default: boolean }>;
 }
 
 interface LoginResponse {
@@ -34,7 +38,7 @@ interface AuthState {
   setTokens: (tokens: { access: string; refresh: string }) => void;
   setUser: (user: AuthUser | null) => void;
   clear: () => void;
-  login: (email: string, password: string) => Promise<AuthUser>;
+  login: (identifier: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   bootstrap: () => Promise<void>;
 }
@@ -96,9 +100,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ accessToken: null, refreshToken: null, user: null });
   },
 
-  login: async (email, password) => {
+  login: async (identifier, password) => {
     const resp = await apiClient.post<LoginResponse>('/auth/login/', {
-      email,
+      identifier,
       password,
     });
     const { access, refresh, user } = resp.data;

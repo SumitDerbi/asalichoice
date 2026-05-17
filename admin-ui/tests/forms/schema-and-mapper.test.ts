@@ -6,33 +6,33 @@ import { ApiError } from '@/lib/api/errors';
 import { loginSchema } from '@/modules/auth/schemas';
 
 describe('loginSchema', () => {
-  it('rejects an empty email and password', () => {
-    const result = loginSchema.safeParse({ email: '', password: '' });
+  it('rejects an empty identifier and password', () => {
+    const result = loginSchema.safeParse({ identifier: '', password: '' });
     expect(result.success).toBe(false);
     if (!result.success) {
       const fields = result.error.flatten().fieldErrors;
-      expect(fields.email?.[0]).toMatch(/valid email/i);
+      expect(fields.identifier?.[0]).toMatch(/email.*mobile.*employee/i);
       expect(fields.password?.[0]).toMatch(/required/i);
     }
   });
 
   it('accepts a well-formed payload', () => {
-    expect(loginSchema.safeParse({ email: 'a@b.test', password: 'x' }).success).toBe(true);
+    expect(loginSchema.safeParse({ identifier: 'a@b.test', password: 'x' }).success).toBe(true);
   });
 });
 
 describe('zodFormValidator', () => {
   it('returns undefined when the value is valid', () => {
     const validate = zodFormValidator(loginSchema);
-    expect(validate({ value: { email: 'a@b.test', password: 'x' } })).toBeUndefined();
+    expect(validate({ value: { identifier: 'a@b.test', password: 'x' } })).toBeUndefined();
   });
 
   it('groups issues by top-level field path', () => {
     const validate = zodFormValidator(loginSchema);
-    const out = validate({ value: { email: 'bad', password: '' } }) as {
+    const out = validate({ value: { identifier: '', password: '' } }) as {
       fields: Record<string, string>;
     };
-    expect(out.fields.email).toMatch(/valid email/i);
+    expect(out.fields.identifier).toMatch(/email.*mobile.*employee/i);
     expect(out.fields.password).toMatch(/required/i);
   });
 });

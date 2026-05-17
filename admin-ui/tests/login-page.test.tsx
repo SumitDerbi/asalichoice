@@ -41,10 +41,10 @@ afterEach(() => {
 });
 
 describe('LoginPage', () => {
-  it('shows a validation error when the email is missing', async () => {
+  it('shows a validation error when the identifier is missing', async () => {
     renderLogin();
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(await screen.findByText(/valid email/i)).toBeInTheDocument();
+    expect(await screen.findByText(/email.*mobile.*employee/i)).toBeInTheDocument();
   });
 
   it('logs in and navigates to the dashboard', async () => {
@@ -53,7 +53,7 @@ describe('LoginPage', () => {
     } as never);
 
     renderLogin();
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
+    fireEvent.change(screen.getByLabelText(/email.*mobile.*employee/i), {
       target: { value: 'admin@example.test' },
     });
     fireEvent.change(screen.getByLabelText(/password/i), {
@@ -67,11 +67,11 @@ describe('LoginPage', () => {
 
   it('surfaces the API error message on bad credentials', async () => {
     vi.spyOn(apiClient, 'post').mockRejectedValueOnce(
-      new ApiError({ code: 'API-400', message: 'Invalid email or password.' }, 400),
+      new ApiError({ code: 'AUTH-001', message: 'Invalid identifier or password.' }, 400),
     );
 
     renderLogin();
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
+    fireEvent.change(screen.getByLabelText(/email.*mobile.*employee/i), {
       target: { value: 'admin@example.test' },
     });
     fireEvent.change(screen.getByLabelText(/password/i), {
@@ -79,7 +79,7 @@ describe('LoginPage', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-    expect(await screen.findByText(/invalid email or password/i)).toBeInTheDocument();
+    expect(await screen.findByText(/invalid identifier or password/i)).toBeInTheDocument();
     expect(useAuthStore.getState().accessToken).toBeNull();
   });
 });

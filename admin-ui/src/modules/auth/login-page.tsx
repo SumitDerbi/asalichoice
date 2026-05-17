@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/auth/store';
 import { loginSchema, type LoginValues } from './schemas';
 
 const APP_NAME = import.meta.env.VITE_APP_NAME ?? 'AsliChoice Admin';
-const KNOWN_FIELDS = ['email', 'password'] as const;
+const KNOWN_FIELDS = ['identifier', 'password'] as const;
 
 function pickFieldErrorMap(errorMap: unknown): Record<string, unknown> | undefined {
   if (!errorMap || typeof errorMap !== 'object') return undefined;
@@ -30,13 +30,13 @@ export function LoginPage() {
 
   const form = useAppForm<LoginValues>({
     schema: loginSchema,
-    defaultValues: { email: '', password: '' },
+    defaultValues: { identifier: '', password: '' },
     async onSubmit({ value }) {
       setSubmitting(true);
       try {
         const ok = await runSubmit(value, {
           action: async (vals) => {
-            await login(vals.email.trim(), vals.password);
+            await login(vals.identifier.trim(), vals.password);
           },
           successMessage: null,
           knownFields: KNOWN_FIELDS,
@@ -64,12 +64,12 @@ export function LoginPage() {
             void form.handleSubmit();
           }}
         >
-          <form.Field name="email">
+          <form.Field name="identifier">
             {(field) => (
               <Field
                 field={field}
-                label="Email"
-                type="email"
+                label="Email / mobile / employee code"
+                type="text"
                 autoComplete="username"
                 formErrorMap={errorMapForFields}
               />
