@@ -69,6 +69,7 @@ LOCAL_APPS = [
     "apps.users",
     "apps.system_settings",
     "apps.master",
+    "apps.catalog",
 ]
 
 AUTH_USER_MODEL = "users.User"
