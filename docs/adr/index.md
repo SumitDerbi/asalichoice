@@ -12,6 +12,7 @@ Short, dated records of architectural decisions and their context. Inspired by [
 | [003](003-branch-context.md)     | Branch context         | Accepted |
 | [004](004-tax-components.md)     | Tax components         | Accepted |
 | [005](005-otp-smart-fallback.md) | OTP smart fallback     | Accepted |
+| [006](006-pricing-bands.md)      | Pricing bands          | Accepted |
 
 ## Process
 

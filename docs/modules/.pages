@@ -2,4 +2,5 @@ nav:
   - Overview: index.md
   - Master Management: master
   - Users & Roles: users
+  - Catalog Management: catalog
   - System Settings: system-settings.md
