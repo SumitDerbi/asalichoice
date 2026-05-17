@@ -3,4 +3,5 @@ nav:
   - Master Management: master
   - Users & Roles: users
   - Catalog Management: catalog
+  - Vendor & Purchase: purchase
   - System Settings: system-settings.md

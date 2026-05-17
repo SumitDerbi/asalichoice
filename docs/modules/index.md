@@ -7,7 +7,7 @@ One page per Mxx module will land here as each one ships. The canonical executio
 | M01 — Branches & locations      | done    | [`master/`](master/index.md)     |
 | M02 — Users, roles, permissions | done    | [`users/`](users/index.md)       |
 | M03 — Catalog Management        | done    | [`catalog/`](catalog/index.md)   |
-| M04 — Vendors & purchasing      | pending | `plans/phase-1-modules/M04-*.md` |
+| M04 — Vendors & purchasing      | done    | [`purchase/`](purchase/index.md) |
 | M05 — Inventory                 | pending | `plans/phase-1-modules/M05-*.md` |
 | M06 — Purchasing & GRN          | pending | `plans/phase-1-modules/M06-*.md` |
 | M07 — Inventory                 | pending | `plans/phase-1-modules/M07-*.md` |
