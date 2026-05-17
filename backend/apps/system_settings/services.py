@@ -163,9 +163,9 @@ def get_integration_key(provider: str, key_name: str) -> str | None:
 
 
 __all__ = [
-    "get_setting",
-    "is_feature_enabled",
     "get_integration_key",
-    "invalidate_setting_cache",
+    "get_setting",
     "invalidate_feature_cache",
+    "invalidate_setting_cache",
+    "is_feature_enabled",
 ]

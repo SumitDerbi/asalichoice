@@ -43,7 +43,7 @@ def test_login_wrong_password(api_client, user_factory):
     )
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
     body = resp.json()
-    assert body["error"]["code"] == "API-400"
+    assert body["error"]["code"] == "AUTH-001"
     assert "invalid" in body["error"]["message"].lower()
 
 

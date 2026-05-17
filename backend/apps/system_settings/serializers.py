@@ -12,6 +12,8 @@ from .models import ContactInfo, FeatureToggle, IntegrationKey, SiteSetting, Soc
 
 
 class SiteSettingSerializer(BaseModelSerializer):
+    branch_id = serializers.IntegerField(required=False, allow_null=True, default=None)
+
     class Meta:
         model = SiteSetting
         fields = (

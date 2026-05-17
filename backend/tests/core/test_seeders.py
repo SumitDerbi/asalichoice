@@ -18,7 +18,7 @@ from apps.system_settings.models import (
     SiteSetting,
     SocialLink,
 )
-from apps.users.management.commands.seed_roles import DEFAULT_ROLES
+from apps.users.management.commands.seed_roles import LEGACY_GROUPS as DEFAULT_ROLES
 
 pytestmark = pytest.mark.django_db
 

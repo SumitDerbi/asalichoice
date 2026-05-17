@@ -71,6 +71,7 @@ if TYPE_CHECKING:  # pragma: no cover - import for type-checkers only
     from .viewsets import BaseModelViewSet
 
 __all__ = [
+    "IDEMPOTENCY_HEADER",
     "BaseModelSerializer",
     "BaseModelViewSet",
     "BaseSearchFilterBackend",
@@ -79,7 +80,6 @@ __all__ = [
     "DefaultPageNumberPagination",
     "DomainError",
     "HasAnyPermission",
-    "IDEMPOTENCY_HEADER",
     "IdempotencyKeyMixin",
     "IsBranchScoped",
     "IsSuperAdmin",

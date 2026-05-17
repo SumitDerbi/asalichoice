@@ -73,6 +73,18 @@ LOCAL_APPS = [
 
 AUTH_USER_MODEL = "users.User"
 
+AUTHENTICATION_BACKENDS = [
+    "apps.users.auth_backends.IdentifierBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# OTP / lockout knobs (overridable via env in later milestones).
+OTP_LENGTH = env.int("OTP_LENGTH", default=6)
+OTP_EXPIRY_MINUTES = env.int("OTP_EXPIRY_MINUTES", default=5)
+OTP_MAX_ATTEMPTS = env.int("OTP_MAX_ATTEMPTS", default=5)
+LOGIN_LOCKOUT_THRESHOLD = env.int("LOGIN_LOCKOUT_THRESHOLD", default=10)
+LOGIN_LOCKOUT_MINUTES = env.int("LOGIN_LOCKOUT_MINUTES", default=15)
+
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # ---------------------------------------------------------------------------
@@ -199,7 +211,7 @@ REST_FRAMEWORK = {
         "login": env("THROTTLE_LOGIN_RATE", default="5/min"),
         "burst-anon": env("THROTTLE_ANON_RATE", default="60/min"),
         "burst-user": env("THROTTLE_USER_RATE", default="120/min"),
-        "otp": env("THROTTLE_OTP_RATE", default="5/15min"),
+        "otp": env("THROTTLE_OTP_RATE", default="5/min"),
     },
 }
 

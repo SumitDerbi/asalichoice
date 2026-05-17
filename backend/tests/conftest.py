@@ -12,12 +12,24 @@ from typing import Any
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from apps.core.audit.models import AuditLog
 from apps.core.context import RequestContext, reset_request_context, set_request_context
 
 User = get_user_model()
+
+
+@pytest.fixture(autouse=True)
+def _clear_throttle_cache():
+    """Reset DRF throttle counters between tests so login/OTP tests do not
+    bleed into each other in the full-suite run.
+    """
+
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture

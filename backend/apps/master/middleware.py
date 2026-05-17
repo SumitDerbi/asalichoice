@@ -53,17 +53,45 @@ def _resolve_default_branch_id() -> int | None:
         return None
 
 
-def _user_can_access(user, branch: Branch) -> bool:
-    """User → branch ACL stub.
+def _resolve_jwt_user(request: HttpRequest):
+    """Decode the ``Authorization: Bearer …`` header eagerly.
 
-    The real ACL (``user.branches`` M2M / role scoping) lands in M02.
-    For now we accept any caller for any active branch — the middleware
-    only guards "branch exists and is active".  Authenticated callers
-    do NOT get extra rights here; the check is deliberately permissive
-    so that M01/03 can ship without the M02 user model.
+    DRF authentication runs *inside* the view, so at middleware time
+    ``request.user`` is still anonymous. To make the branch ACL real we
+    decode the access token ourselves; on any failure we return None
+    and let the downstream auth class produce a proper 401.
     """
 
-    return True
+    auth = request.META.get("HTTP_AUTHORIZATION", "")
+    if not auth.lower().startswith("bearer "):
+        return None
+    try:
+        from rest_framework_simplejwt.authentication import JWTAuthentication
+
+        validated = JWTAuthentication().authenticate(request)
+    except Exception:  # pragma: no cover - any token error → anon
+        return None
+    if validated is None:
+        return None
+    user, _token = validated
+    return user
+
+
+def _user_can_access(user, branch: Branch) -> bool:
+    """Enforce :mod:`apps.users.api_public.user_can_access_branch`.
+
+    Falls back to "allow" for anonymous callers — public endpoints
+    handle their own gating, and authenticated CRUD views run their own
+    DRF permission classes on top of this.
+    """
+
+    if user is None or not getattr(user, "is_authenticated", False):
+        return True
+    try:
+        from apps.users.api_public import user_can_access_branch
+    except Exception:  # pragma: no cover - users app not migrated yet
+        return True
+    return user_can_access_branch(user, branch.pk)
 
 
 class BranchContextMiddleware:
@@ -84,7 +112,7 @@ class BranchContextMiddleware:
 
     def _resolve(self, request: HttpRequest) -> int | None | HttpResponse:
         header = request.META.get(HEADER, "").strip()
-        user = getattr(request, "user", None)
+        user = _resolve_jwt_user(request) or getattr(request, "user", None)
 
         if not header:
             # No header: fall back to the configured default branch.  Note
