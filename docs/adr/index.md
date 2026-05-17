@@ -4,13 +4,14 @@ Short, dated records of architectural decisions and their context. Inspired by [
 
 ## Index
 
-| #                            | Title                  | Status   |
-| ---------------------------- | ---------------------- | -------- |
-| [000](000-template.md)       | Template               | n/a      |
-| [001](001-migrations.md)     | Migrations conventions | Accepted |
-| [002](002-service-layer.md)  | Service layer          | Accepted |
-| [003](003-branch-context.md) | Branch context         | Accepted |
-| [004](004-tax-components.md) | Tax components         | Accepted |
+| #                                | Title                  | Status   |
+| -------------------------------- | ---------------------- | -------- |
+| [000](000-template.md)           | Template               | n/a      |
+| [001](001-migrations.md)         | Migrations conventions | Accepted |
+| [002](002-service-layer.md)      | Service layer          | Accepted |
+| [003](003-branch-context.md)     | Branch context         | Accepted |
+| [004](004-tax-components.md)     | Tax components         | Accepted |
+| [005](005-otp-smart-fallback.md) | OTP smart fallback     | Accepted |
 
 ## Process
 
