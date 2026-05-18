@@ -8,8 +8,21 @@ import { LoginPage } from '@/modules/auth/login-page';
 import { useAuthStore } from '@/lib/auth/store';
 import { listRoutes } from './module-registry';
 import { registerAllModules } from './register-modules';
+import type { RouteObject } from 'react-router-dom';
 
 registerAllModules();
+
+function renderRoute(r: RouteObject, key: string): ReactElement {
+  const children = (r.children ?? []).map((c, i) => renderRoute(c, `${key}-${i}`));
+  if (r.index) {
+    return <Route key={key} index element={r.element} />;
+  }
+  return (
+    <Route key={key} path={r.path} element={r.element}>
+      {children}
+    </Route>
+  );
+}
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const access = useAuthStore((s) => s.accessToken);
@@ -40,13 +53,7 @@ export default function App() {
             </RequireAuth>
           }
         >
-          {moduleRoutes.map((r, i) =>
-            r.index ? (
-              <Route key={`idx-${i}`} index element={r.element} />
-            ) : (
-              <Route key={r.path ?? `p-${i}`} path={r.path} element={r.element} />
-            ),
-          )}
+          {moduleRoutes.map((r, i) => renderRoute(r, `m-${i}`))}
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

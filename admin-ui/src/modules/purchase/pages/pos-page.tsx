@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api/errors';
 import { PurchaseListPage, StatusBadge } from '../components/purchase-list-page';
+import { POForm } from '../components/po-form';
 import { usePurchaseAction } from '../api/hooks';
 import { useCanManagePOs, useCanApprovePOs } from '../lib/use-permission';
 import type { PurchaseOrder } from '../api/types';
@@ -98,6 +99,8 @@ export function POsPage() {
       searchField="po_no"
       filters={[{ label: t('common.status'), param: 'status', options: STATUS_OPTIONS }]}
       columns={columns}
+      canCreate={canManage}
+      renderCreate={(close) => <POForm onClose={close} />}
     />
   );
 }

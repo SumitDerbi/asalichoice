@@ -91,7 +91,7 @@ class POItemSerializer(BaseModelSerializer):
 
 
 class PurchaseOrderSerializer(BaseModelSerializer):
-    items = POItemSerializer(many=True, read_only=True)
+    items = POItemSerializer(many=True, required=False)
 
     class Meta:
         model = PurchaseOrder
@@ -142,7 +142,7 @@ class GRNItemSerializer(BaseModelSerializer):
 
 
 class GRNSerializer(BaseModelSerializer):
-    items = GRNItemSerializer(many=True, read_only=True)
+    items = GRNItemSerializer(many=True, required=False)
 
     class Meta:
         model = GRN

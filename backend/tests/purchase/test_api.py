@@ -120,6 +120,44 @@ def test_grn_sync_offline_missing_fields_returns_envelope(api_client, user_facto
 # ---------------------------------------------------------------------------
 
 
+def test_create_po_with_nested_items(api_client, user_factory, vendor, branch, product, uom):
+    client = api_client(_super(user_factory))
+    body = {
+        "po_no": "PO-NEST-1",
+        "vendor": vendor.pk,
+        "branch": branch.pk,
+        "items": [
+            {"product": product.pk, "uom": uom.pk, "qty": "4", "rate": "25"},
+            {"product": product.pk, "uom": uom.pk, "qty": "2", "rate": "30"},
+        ],
+    }
+    r = client.post("/api/v1/purchase/pos/", body, format="json")
+    assert r.status_code == 201, r.content
+    data = r.json()
+    assert len(data["items"]) == 2
+    assert data["totals_json"]["grand_total"] == "160"
+
+
+def test_create_grn_with_nested_items(api_client, user_factory, vendor, branch, product):
+    client = api_client(_super(user_factory))
+    body = {
+        "grn_no": "GRN-NEST-1",
+        "vendor": vendor.pk,
+        "branch": branch.pk,
+        "items": [
+            {
+                "product": product.pk,
+                "qty_received": "5",
+                "qty_accepted": "5",
+                "cost_price": "20",
+            }
+        ],
+    }
+    r = client.post("/api/v1/purchase/grns/", body, format="json")
+    assert r.status_code == 201, r.content
+    assert len(r.json()["items"]) == 1
+
+
 def test_vendor_ledger_list_filters_by_vendor(api_client, user_factory, vendor):
     client = api_client(_super(user_factory))
     resp = client.get(f"/api/v1/purchase/ledger/?vendor={vendor.pk}")

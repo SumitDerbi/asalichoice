@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api/errors';
 import { PurchaseListPage, StatusBadge } from '../components/purchase-list-page';
+import { InvoiceFromGRNsForm } from '../components/invoice-from-grns-form';
 import { usePurchaseAction } from '../api/hooks';
 import { useCanManageInvoices, useCanRecordPayments } from '../lib/use-permission';
 import type { PurchaseInvoice } from '../api/types';
@@ -92,6 +93,8 @@ export function InvoicesPage() {
       searchField="pi_no"
       filters={[{ label: t('common.status'), param: 'status', options: STATUS_OPTIONS }]}
       columns={columns}
+      canCreate={canManage}
+      renderCreate={(close) => <InvoiceFromGRNsForm onClose={close} />}
     />
   );
 }

@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { cn } from '@/lib/utils';
 import { t } from './lib/i18n';
 import { VendorsPage } from './pages/vendors-page';
+import { VendorDetailPage } from './pages/vendor-detail-page';
 import { POsPage } from './pages/pos-page';
 import { GRNsPage } from './pages/grns-page';
 import { InvoicesPage } from './pages/invoices-page';
@@ -80,6 +81,7 @@ export function purchaseModule(): ModuleDef {
         children: [
           { index: true, element: <PurchaseIndex /> },
           { path: 'vendors', element: <VendorsPage /> },
+          { path: 'vendors/:id', element: <VendorDetailPage /> },
           { path: 'pos', element: <POsPage /> },
           { path: 'grns', element: <GRNsPage /> },
           { path: 'invoices', element: <InvoicesPage /> },

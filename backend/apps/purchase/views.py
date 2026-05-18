@@ -26,7 +26,9 @@ from .services import (
     approve_grn,
     approve_po,
     cancel_po,
+    create_grn,
     create_invoice_from_grns,
+    create_po,
     create_return,
     deactivate_vendor,
     post_invoice,
@@ -78,6 +80,47 @@ class PurchaseOrderViewSet(BaseModelViewSet):
     serializer_class = PurchaseOrderSerializer
     required_perms = ("purchase.po.view",)
 
+    def create(self, request, *args, **kwargs):
+        data = request.data or {}
+        items = data.get("items") or []
+        try:
+            vendor = Vendor.objects.get(pk=data["vendor"])
+            from apps.master.models import Branch
+
+            branch = Branch.objects.get(pk=data["branch"])
+            po_no = data["po_no"]
+        except (KeyError, Vendor.DoesNotExist):
+            return Response(
+                {"error": {"code": "API-400", "message": "vendor, branch and po_no are required."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        # Resolve product / variant / uom ids on incoming items.
+        from apps.catalog.models import Product, ProductVariant
+        from apps.master.models import UnitOfMeasure
+
+        resolved_items: list[dict] = []
+        for raw in items:
+            row = dict(raw)
+            if row.get("product") and not hasattr(row["product"], "pk"):
+                row["product"] = Product.objects.filter(pk=row["product"]).first()
+            if row.get("variant") and not hasattr(row["variant"], "pk"):
+                row["variant"] = ProductVariant.objects.filter(pk=row["variant"]).first()
+            if row.get("uom") and not hasattr(row["uom"], "pk"):
+                row["uom"] = UnitOfMeasure.objects.filter(pk=row["uom"]).first()
+            resolved_items.append(row)
+        extras: dict = {}
+        if data.get("expected_delivery"):
+            extras["expected_delivery"] = data["expected_delivery"]
+        if data.get("terms") is not None:
+            extras["terms"] = data["terms"]
+        try:
+            po = create_po(
+                vendor=vendor, branch=branch, po_no=po_no, items=resolved_items, **extras
+            )
+        except DomainError as exc:
+            return _envelope(exc)
+        return Response(self.get_serializer(po).data, status=status.HTTP_201_CREATED)
+
     @extend_schema(summary="Submit a draft PO for approval.")
     @action(detail=True, methods=["post"], url_path="submit")
     def submit(self, request, pk=None):
@@ -118,6 +161,55 @@ class GRNViewSet(BaseModelViewSet):
     queryset = GRN.objects.select_related("vendor", "branch", "po").prefetch_related("items")
     serializer_class = GRNSerializer
     required_perms = ("purchase.grn.view",)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data or {}
+        items = data.get("items") or []
+        try:
+            vendor = Vendor.objects.get(pk=data["vendor"])
+            from apps.master.models import Branch
+
+            branch = Branch.objects.get(pk=data["branch"])
+            grn_no = data["grn_no"]
+        except (KeyError, Vendor.DoesNotExist):
+            return Response(
+                {
+                    "error": {
+                        "code": "API-400",
+                        "message": "vendor, branch and grn_no are required.",
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        po = None
+        if data.get("po"):
+            po = PurchaseOrder.objects.filter(pk=data["po"]).first()
+        # Resolve product / variant / po_item / uom ids on incoming items.
+        from apps.catalog.models import Product, ProductVariant
+
+        from .models import POItem
+
+        resolved_items: list[dict] = []
+        for raw in items:
+            row = dict(raw)
+            if row.get("product") and not hasattr(row["product"], "pk"):
+                row["product"] = Product.objects.filter(pk=row["product"]).first()
+            if row.get("variant") and not hasattr(row["variant"], "pk"):
+                row["variant"] = ProductVariant.objects.filter(pk=row["variant"]).first()
+            if row.get("po_item") and not hasattr(row["po_item"], "pk"):
+                row["po_item"] = POItem.objects.filter(pk=row["po_item"]).first()
+            resolved_items.append(row)
+        extras: dict = {}
+        for k in ("received_at", "vehicle_no", "transporter"):
+            if data.get(k) is not None:
+                extras[k] = data[k]
+        try:
+            grn = create_grn(
+                vendor=vendor, branch=branch, grn_no=grn_no, items=resolved_items, po=po, **extras
+            )
+        except DomainError as exc:
+            return _envelope(exc)
+        return Response(self.get_serializer(grn).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(summary="Submit a GRN for approval.")
     @action(detail=True, methods=["post"], url_path="submit")

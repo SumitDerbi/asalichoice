@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,9 @@ export function VendorsPage() {
       header: () => <span className="sr-only">{t('common.actions')}</span>,
       cell: ({ row }) => (
         <div className="flex justify-end gap-2">
+          <Button asChild size="sm" variant="ghost">
+            <Link to={`/purchase/vendors/${row.original.id}`}>View</Link>
+          </Button>
           <Button
             size="sm"
             variant="ghost"

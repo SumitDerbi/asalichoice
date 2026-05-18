@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api/errors';
 import { PurchaseListPage, StatusBadge } from '../components/purchase-list-page';
+import { GRNForm } from '../components/grn-form';
 import { usePurchaseAction } from '../api/hooks';
 import { useCanManageGRNs, useCanApproveGRNs } from '../lib/use-permission';
 import type { GRN } from '../api/types';
@@ -95,6 +96,8 @@ export function GRNsPage() {
       searchField="grn_no"
       filters={[{ label: t('common.status'), param: 'status', options: STATUS_OPTIONS }]}
       columns={columns}
+      canCreate={canManage}
+      renderCreate={(close) => <GRNForm onClose={close} />}
     />
   );
 }

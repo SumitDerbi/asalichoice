@@ -19,6 +19,7 @@ import { useThemeStore } from '@/lib/theme/store';
 import { CommandPalette } from './command-palette';
 import { ShortcutsOverlay } from './shortcuts-overlay';
 import { listModulesByCategory, type ModuleDef } from './module-registry';
+import { ApprovalInbox } from '@/modules/purchase/components/approval-inbox';
 
 const APP_NAME = import.meta.env.VITE_APP_NAME ?? 'AsliChoice Admin';
 const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? '0.1.0';
@@ -168,6 +169,7 @@ export function AppShell() {
               </kbd>
             </Button>
             <BranchSwitcher />
+            <ApprovalInbox />
             <Button
               variant="ghost"
               size="icon"

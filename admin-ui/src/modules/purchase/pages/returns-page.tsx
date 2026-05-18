@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api/errors';
 import { PurchaseListPage, StatusBadge } from '../components/purchase-list-page';
+import { PurchaseReturnForm } from '../components/return-form';
 import { usePurchaseAction } from '../api/hooks';
 import { useHasPurchasePermission } from '../lib/use-permission';
 import type { PurchaseReturn } from '../api/types';
@@ -66,6 +67,8 @@ export function ReturnsPage() {
       searchField="pr_no"
       filters={[{ label: t('common.status'), param: 'status', options: STATUS_OPTIONS }]}
       columns={columns}
+      canCreate={canManage}
+      renderCreate={(close) => <PurchaseReturnForm onClose={close} />}
     />
   );
 }
