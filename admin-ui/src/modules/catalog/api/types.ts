@@ -70,6 +70,36 @@ export interface ProductPrice extends BaseRow {
   valid_to: string | null;
 }
 
+export type BarcodeKind = 'EAN13' | 'UPC' | 'CODE128' | 'CUSTOM';
+
+export interface Barcode extends BaseRow {
+  value: string;
+  type: BarcodeKind;
+  product: number | null;
+  variant: number | null;
+}
+
+export type AttributeKind = 'TEXT' | 'NUMBER' | 'BOOL' | 'SELECT';
+
+export interface Attribute extends BaseRow {
+  code: string;
+  name: string;
+  type: AttributeKind;
+  options_json: unknown;
+}
+
+export interface ProductAttributeValue extends BaseRow {
+  product: number;
+  attribute: number;
+  value: string;
+}
+
+export interface ProductBranchAvailability extends BaseRow {
+  product: number;
+  branch: number;
+  is_listed: boolean;
+}
+
 export interface Paginated<T> {
   count: number;
   next: string | null;

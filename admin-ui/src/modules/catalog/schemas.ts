@@ -56,3 +56,53 @@ export const priceSchema = z
   });
 
 export type PriceInput = z.infer<typeof priceSchema>;
+
+const requiredId = z.preprocess(
+  (v) => (v === '' || v == null ? undefined : Number(v)),
+  z.number().int().positive('Required'),
+);
+const optionalId = z.preprocess(
+  (v) => (v === '' || v == null ? null : Number(v)),
+  z.number().int().positive().nullable(),
+);
+
+export const variantSchema = z.object({
+  product: requiredId,
+  sku: z.string().min(1, 'Required').max(64),
+  barcode: z.string().max(64).optional().default(''),
+  attributes_json: z.unknown().optional(),
+  is_default: z.boolean().optional().default(false),
+});
+
+export type VariantInput = z.infer<typeof variantSchema>;
+
+export const barcodeSchema = z
+  .object({
+    value: z.string().min(1, 'Required').max(64),
+    type: z.enum(['EAN13', 'UPC', 'CODE128', 'CUSTOM']),
+    product: optionalId,
+    variant: optionalId,
+  })
+  .refine((v) => Boolean(v.product) !== Boolean(v.variant), {
+    message: 'Pick exactly one of product or variant',
+    path: ['product'],
+  });
+
+export type BarcodeInput = z.infer<typeof barcodeSchema>;
+
+export const attributeSchema = z.object({
+  code: z.string().min(1, 'Required').max(64),
+  name: z.string().min(1, 'Required').max(120),
+  type: z.enum(['TEXT', 'NUMBER', 'BOOL', 'SELECT']),
+  options_json: z.unknown().optional(),
+});
+
+export type AttributeInput = z.infer<typeof attributeSchema>;
+
+export const availabilitySchema = z.object({
+  product: requiredId,
+  branch: requiredId,
+  is_listed: z.boolean().optional().default(true),
+});
+
+export type AvailabilityInput = z.infer<typeof availabilitySchema>;

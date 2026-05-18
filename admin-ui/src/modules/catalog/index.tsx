@@ -8,6 +8,10 @@ import { ProductsPage } from './pages/products-page';
 import { BundlesPage } from './pages/bundles-page';
 import { PricesPage } from './pages/prices-page';
 import { ImportPage } from './pages/import-page';
+import { VariantsPage } from './pages/variants-page';
+import { BarcodesPage } from './pages/barcodes-page';
+import { AttributesPage } from './pages/attributes-page';
+import { AvailabilityPage } from './pages/availability-page';
 
 interface NavLink {
   to: string;
@@ -16,6 +20,10 @@ interface NavLink {
 
 const LINKS: NavLink[] = [
   { to: 'products', label: t('products.title') },
+  { to: 'variants', label: t('variants.title') },
+  { to: 'barcodes', label: t('barcodes.title') },
+  { to: 'attributes', label: t('attributes.title') },
+  { to: 'availability', label: t('availability.title') },
   { to: 'prices', label: t('prices.title') },
   { to: 'bundles', label: t('bundles.title') },
   { to: 'import', label: t('import.title') },
@@ -76,6 +84,10 @@ export function catalogModule(): ModuleDef {
         children: [
           { index: true, element: <CatalogIndex /> },
           { path: 'products', element: <ProductsPage /> },
+          { path: 'variants', element: <VariantsPage /> },
+          { path: 'barcodes', element: <BarcodesPage /> },
+          { path: 'attributes', element: <AttributesPage /> },
+          { path: 'availability', element: <AvailabilityPage /> },
           { path: 'bundles', element: <BundlesPage /> },
           { path: 'prices', element: <PricesPage /> },
           { path: 'import', element: <ImportPage /> },
