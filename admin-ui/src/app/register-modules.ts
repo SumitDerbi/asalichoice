@@ -4,6 +4,7 @@ import { mastersModule } from '@/modules/masters';
 import { catalogModule } from '@/modules/catalog';
 import { purchaseModule } from '@/modules/purchase';
 import { systemSettingsModule } from '@/modules/system-settings';
+import { usersModule } from '@/modules/users';
 
 let registered = false;
 
@@ -15,5 +16,6 @@ export function registerAllModules(): void {
   registerModule(mastersModule());
   registerModule(catalogModule());
   registerModule(purchaseModule());
+  registerModule(usersModule());
   registerModule(systemSettingsModule());
 }

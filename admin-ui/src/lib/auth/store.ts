@@ -39,6 +39,15 @@ interface AuthState {
   setUser: (user: AuthUser | null) => void;
   clear: () => void;
   login: (identifier: string, password: string) => Promise<AuthUser>;
+  loginWithOTP: (identifier: string, code: string) => Promise<AuthUser>;
+  requestOTP: (
+    identifier: string,
+    channel?: 'SMS' | 'EMAIL' | 'WHATSAPP',
+  ) => Promise<{
+    channel: string;
+    expires_at: string;
+    identifier: string;
+  }>;
   logout: () => Promise<void>;
   bootstrap: () => Promise<void>;
 }
@@ -109,6 +118,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     writePersisted({ access, refresh, user });
     set({ accessToken: access, refreshToken: refresh, user });
     return user;
+  },
+
+  loginWithOTP: async (identifier, code) => {
+    const resp = await apiClient.post<LoginResponse>('/auth/otp/verify/', {
+      identifier,
+      code,
+      purpose: 'LOGIN',
+    });
+    const { access, refresh, user } = resp.data;
+    writePersisted({ access, refresh, user });
+    set({ accessToken: access, refreshToken: refresh, user });
+    return user;
+  },
+
+  requestOTP: async (identifier, channel) => {
+    const payload: Record<string, unknown> = { identifier, purpose: 'LOGIN' };
+    if (channel) payload.preferred_channel = channel;
+    const resp = await apiClient.post<{ channel: string; expires_at: string; identifier: string }>(
+      '/auth/otp/request/',
+      payload,
+    );
+    return resp.data;
   },
 
   logout: async () => {
