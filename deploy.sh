@@ -341,9 +341,11 @@ deploy_storefront() {
         if [ -n "$NODE_BIN" ] && [ -d "$NODE_BIN" ]; then
             export PATH="$NODE_BIN:$PATH"
         fi
+        # storefront tailwind has no package-lock committed, so use `install`
+        # instead of `ci`. Skip scripts/husky for the same reasons as admin-ui.
         ( cd "$GIT_DIR/storefront/theme/static_src" \
-            && npm ci \
-            && npm run tailwind:build )
+            && HUSKY=0 NODE_ENV=development npm install --ignore-scripts --no-audit --no-fund \
+            && HUSKY=0 npm run tailwind:build )
         export PATH="$OLD_PATH"
     fi
 
