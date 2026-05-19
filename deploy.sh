@@ -233,9 +233,11 @@ build_admin_ui() {
     # The repo declares `admin-ui` as an npm workspace at the root.
     # --ignore-scripts skips the root `prepare` -> husky hook (dev-only) so it
     # doesn't fail on the server where husky's binary isn't available.
+    # --include=dev forces devDependencies (tsc, vite, vitest types) to install
+    # even when the cPanel nodevenv sets NODE_ENV=production.
     # HUSKY=0 is belt-and-suspenders in case husky ever does run.
-    HUSKY=0 npm ci --ignore-scripts --workspace admin-ui --include-workspace-root=false
-    HUSKY=0 npm run build --workspace admin-ui
+    HUSKY=0 NODE_ENV=development npm ci --include=dev --ignore-scripts --workspace admin-ui --include-workspace-root=false
+    HUSKY=0 NODE_ENV=production  npm run build --workspace admin-ui
 
     mkdir -p "$APP_DIR_ADMIN_UI"
     rsync -a --delete \
