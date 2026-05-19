@@ -1,5 +1,7 @@
 node_modules
-dist
+# admin-ui/dist is committed as a deploy artifact (low-mem shared host).
+# Build locally with `npm run build --workspace admin-ui` before pushing.
+# dist
 dist-ssr
 coverage
 playwright-report
@@ -7,6 +9,7 @@ test-results
 .env
 .env.*
 !.env.example
+!.env.production
 *.local
 .vite
 .DS_Store

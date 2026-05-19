@@ -222,16 +222,15 @@ pull_latest_code() {
 build_admin_ui() {
     log_info "Building admin-ui..."
 
-    # If BUILD_ADMIN_UI=false in config, skip the build entirely and expect
-    # a pre-built dist/ to already exist (uploaded separately via scp/rsync).
-    # This is the recommended mode for low-memory cPanel shared hosting where
-    # vite/rollup WASM allocation fails.
-    if [ "${BUILD_ADMIN_UI:-true}" = "false" ]; then
-        log_info "  BUILD_ADMIN_UI=false → skipping server-side build."
-        if [ ! -d "$GIT_DIR/admin-ui/dist" ]; then
-            log_error "Pre-built admin-ui/dist not found at $GIT_DIR/admin-ui/dist"
-            log_error "Build locally with: npm run build --workspace admin-ui"
-            log_error "Then upload dist/ to $GIT_DIR/admin-ui/dist/ on the server."
+    # admin-ui is built locally and its dist/ is committed to the repo.
+    # The server NEVER builds (cPanel shared hosting can't allocate WASM mem
+    # for rollup). Set BUILD_ADMIN_UI=true in the config only if you ever
+    # provision a host that can actually run the build.
+    if [ "${BUILD_ADMIN_UI:-false}" = "false" ]; then
+        log_info "  BUILD_ADMIN_UI=false → using committed admin-ui/dist."
+        if [ ! -d "$GIT_DIR/admin-ui/dist" ] || [ ! -f "$GIT_DIR/admin-ui/dist/index.html" ]; then
+            log_error "Committed admin-ui/dist is missing or empty."
+            log_error "Run locally:  npm run build:admin-ui  &&  git add -f admin-ui/dist && git commit && git push"
             exit 1
         fi
     else
