@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -41,6 +42,49 @@ from .services import (
     verify_otp,
 )
 from .throttling import LoginRateThrottle
+
+# ---------------------------------------------------------------------------
+# Sessions (refresh token listing/revoke)
+# ---------------------------------------------------------------------------
+
+
+class SessionsView(APIView):
+    """GET: List all active refresh tokens (sessions) for the current user.
+    POST: Revoke (blacklist) a specific refresh token for the current user.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        tokens = OutstandingToken.objects.filter(user=user).order_by("-created_at")
+        sessions = []
+        for t in tokens:
+            sessions.append(
+                {
+                    "jti": t.jti,
+                    "created_at": t.created_at,
+                    "expires_at": t.expires_at,
+                    "ip": t.ip if hasattr(t, "ip") else None,
+                    "user_agent": t.user_agent if hasattr(t, "user_agent") else None,
+                    "blacklisted": BlacklistedToken.objects.filter(token=t).exists(),
+                }
+            )
+        return Response({"sessions": sessions})
+
+    def post(self, request):
+        """Revoke (blacklist) a specific refresh token by JTI."""
+        jti = request.data.get("jti")
+        if not jti:
+            return Response({"error": "Missing jti"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            token = OutstandingToken.objects.get(user=request.user, jti=jti)
+        except OutstandingToken.DoesNotExist:
+            return Response({"error": "Token not found"}, status=status.HTTP_404_NOT_FOUND)
+        if BlacklistedToken.objects.filter(token=token).exists():
+            return Response({"detail": "Already revoked"}, status=status.HTTP_200_OK)
+        BlacklistedToken.objects.create(token=token)
+        return Response({"detail": "Revoked"}, status=status.HTTP_200_OK)
 
 
 def _client_ip(request: Request) -> str | None:
@@ -218,6 +262,24 @@ class PasswordResetConfirmView(APIView):
 
 
 class UserViewSet(BaseModelViewSet):
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="resend-invite",
+        permission_classes=[IsAuthenticated],
+    )
+    def resend_invite(self, request, pk=None):
+        """Resend an invite (password-reset OTP) to the user."""
+        from .services import send_user_invite
+
+        user = self.get_object()
+        send_user_invite(
+            user,
+            ip=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+        return Response({"detail": "Invite resent."}, status=200)
+
     queryset = User.objects.all().prefetch_related("user_roles__role", "branch_access")
     serializer_class = UserSerializer
     required_perms = ("users.view_user", "users.manage_user")

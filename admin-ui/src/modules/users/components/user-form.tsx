@@ -1,8 +1,12 @@
+import { toast } from 'sonner';
 import { Field } from '@/lib/forms';
+import { Button } from '@/components/ui/button';
+import { ApiError } from '@/lib/api/errors';
 import { MasterFormBody } from '@/modules/masters/components/master-form-body';
 import { userSchema, type UserValues } from '../schemas';
-import { useRolesList } from '../api/hooks';
+import { useRolesList, useUserResendInvite } from '../api/hooks';
 import type { User, PrimaryIdentifier } from '../api/types';
+import { BranchAccessSection } from './branch-access-section';
 
 interface UserFormProps {
   initial: Partial<User>;
@@ -32,6 +36,7 @@ const IDENTIFIER_OPTIONS: Array<{ value: PrimaryIdentifier; label: string }> = [
 export function UserForm({ initial, onSubmit, onCancel, submitting }: UserFormProps) {
   const { data: roles } = useRolesList();
   const isEditing = !!initial.id;
+  const resendInviteMut = useUserResendInvite();
 
   return (
     <MasterFormBody<UserValues>
@@ -58,6 +63,25 @@ export function UserForm({ initial, onSubmit, onCancel, submitting }: UserFormPr
       }}
       onCancel={onCancel}
       submitting={submitting}
+      extraActions={
+        isEditing && initial.id && initial.is_active === false ? (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              try {
+                await resendInviteMut.mutateAsync(initial.id!);
+                toast.success('Invite resent.');
+              } catch (err) {
+                toast.error(err instanceof ApiError ? err.message : 'Resend failed.');
+              }
+            }}
+            disabled={resendInviteMut.isPending}
+          >
+            {resendInviteMut.isPending ? 'Resending…' : 'Resend Invite'}
+          </Button>
+        ) : null
+      }
     >
       {({ form, errorMap }) => (
         <>
@@ -159,6 +183,7 @@ export function UserForm({ initial, onSubmit, onCancel, submitting }: UserFormPr
               </label>
             )}
           </form.Field>
+          {isEditing && initial.id != null && <BranchAccessSection userId={initial.id} />}
         </>
       )}
     </MasterFormBody>

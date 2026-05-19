@@ -1,0 +1,339 @@
+{
+  "info": {
+    "name": "AsliChoice — Catalog",
+    "_postman_id": "1a4b9c00-2d3e-4f8a-9b1c-m03-catalog-suite",
+    "description": "M03 Catalog surface smoke tests.\n\nUse the `local` environment file in `qa/postman/local.env.json`.\n\nFlow:\n1. `Login` populates `access` + `refresh` variables.\n2. Subsequent requests exercise the read-side of every catalog viewset registered in `apps/catalog/urls.py`.\n\nThese are deliberately lightweight: assert that authentication works and that each endpoint returns a DRF paginated response. Mutating tests (POST/PATCH/DELETE) belong in the integration test suite (`backend/tests/catalog/`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login/",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.environment.set('access', data.access);",
+              "pm.environment.set('refresh', data.refresh);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List products",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/products/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "products", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('paginated payload', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('count');",
+              "  pm.expect(body).to.have.property('results');",
+              "  pm.expect(body.results).to.be.an('array');",
+              "  if (body.results.length > 0) {",
+              "    pm.environment.set('productId', body.results[0].id);",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search products (q)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/products/?q=a",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "products", ""],
+          "query": [{ "key": "q", "value": "a" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('paginated payload', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('results');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List variants",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/variants/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "variants", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List barcodes",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/barcodes/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "barcodes", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "if (body.results && body.results.length > 0) {",
+              "  pm.environment.set('barcodeValue', body.results[0].value);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resolve barcode (missing)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/barcodes/resolve/?value=__nope__",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "barcodes", "resolve", ""],
+          "query": [{ "key": "value", "value": "__nope__" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+              "pm.test('CAT-040 error code', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.error && body.error.code).to.eql('CAT-040');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List prices",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/prices/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "prices", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List bundles",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/bundles/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "bundles", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List bundle components",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/bundle-components/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "bundle-components", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List attributes",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/attributes/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "attributes", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List availability",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/availability/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "availability", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List images",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/images/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "images", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unauthenticated products list rejected",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/catalog/products/",
+          "host": ["{{baseUrl}}"],
+          "path": ["catalog", "products", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

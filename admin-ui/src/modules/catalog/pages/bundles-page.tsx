@@ -1,8 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { Field } from '@/lib/forms';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CatalogListPage } from '../components/catalog-list-page';
 import { CatalogFormBody } from '../components/catalog-form-body';
 import { SelectField } from '@/modules/masters/components/select-field';
+import { BundleComponentsTab } from '../components/bundle-components-tab';
 import { useCanManageCatalog } from '../lib/use-permission';
 import { bundleSchema, type BundleInput } from '../schemas';
 import type { Bundle } from '../api/types';
@@ -53,37 +55,48 @@ export function BundlesPage() {
           submitting={submitting}
         >
           {({ form, errorMap }) => (
-            <>
-              <form.Field name="code">
-                {(f) => <Field field={f} label={t('common.code')} formErrorMap={errorMap} />}
-              </form.Field>
-              <form.Field name="name">
-                {(f) => <Field field={f} label={t('common.name')} formErrorMap={errorMap} />}
-              </form.Field>
-              <form.Field name="kind">
-                {(f) => (
-                  <SelectField
-                    field={f}
-                    label={t('common.kind')}
-                    options={KIND_OPTS}
-                    formErrorMap={errorMap}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="price_policy">
-                {(f) => (
-                  <SelectField
-                    field={f}
-                    label={t('common.price_policy')}
-                    options={POLICY_OPTS}
-                    formErrorMap={errorMap}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="fixed_price">
-                {(f) => <Field field={f} label={t('common.fixed_price')} formErrorMap={errorMap} />}
-              </form.Field>
-            </>
+            <Tabs defaultValue="basic" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="basic">Basic</TabsTrigger>
+                <TabsTrigger value="components">Components</TabsTrigger>
+              </TabsList>
+              <TabsContent value="basic" className="space-y-3">
+                <form.Field name="code">
+                  {(f) => <Field field={f} label={t('common.code')} formErrorMap={errorMap} />}
+                </form.Field>
+                <form.Field name="name">
+                  {(f) => <Field field={f} label={t('common.name')} formErrorMap={errorMap} />}
+                </form.Field>
+                <form.Field name="kind">
+                  {(f) => (
+                    <SelectField
+                      field={f}
+                      label={t('common.kind')}
+                      options={KIND_OPTS}
+                      formErrorMap={errorMap}
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="price_policy">
+                  {(f) => (
+                    <SelectField
+                      field={f}
+                      label={t('common.price_policy')}
+                      options={POLICY_OPTS}
+                      formErrorMap={errorMap}
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="fixed_price">
+                  {(f) => (
+                    <Field field={f} label={t('common.fixed_price')} formErrorMap={errorMap} />
+                  )}
+                </form.Field>
+              </TabsContent>
+              <TabsContent value="components">
+                <BundleComponentsTab bundleId={initial.id} />
+              </TabsContent>
+            </Tabs>
           )}
         </CatalogFormBody>
       )}

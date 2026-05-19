@@ -71,6 +71,7 @@ LOCAL_APPS = [
     "apps.master",
     "apps.catalog",
     "apps.purchase",
+    "apps.inventory",
 ]
 
 AUTH_USER_MODEL = "users.User"

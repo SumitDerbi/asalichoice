@@ -17,6 +17,7 @@ import {
   useUserReactivate,
   useUserUpdate,
   useUsersList,
+  useUserResendInvite,
 } from '../api/hooks';
 import type { User } from '../api/types';
 import type { UserValues } from '../schemas';
@@ -56,6 +57,7 @@ export function UsersPage() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<User | null>(null);
   const [confirm, setConfirm] = React.useState<User | null>(null);
+  const resendInviteMut = useUserResendInvite();
 
   const openCreate = () => {
     setEditing(null);
@@ -141,14 +143,31 @@ export function UsersPage() {
                   Deactivate
                 </Button>
               ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => reactivateMut.mutate(r.id)}
-                  disabled={!canManage}
-                >
-                  Reactivate
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => reactivateMut.mutate(r.id)}
+                    disabled={!canManage}
+                  >
+                    Reactivate
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      try {
+                        await resendInviteMut.mutateAsync(r.id);
+                        toast.success('Invite resent.');
+                      } catch (err) {
+                        toast.error(err instanceof ApiError ? err.message : 'Resend failed.');
+                      }
+                    }}
+                    disabled={!canManage || resendInviteMut.isPending}
+                  >
+                    {resendInviteMut.isPending ? 'Resending…' : 'Resend Invite'}
+                  </Button>
+                </>
               )}
             </div>
           );

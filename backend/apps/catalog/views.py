@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from django.db import connection
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -47,19 +48,51 @@ class ProductViewSet(BaseModelViewSet):
         "brand", "category", "hsn", "tax", "base_uom"
     ).prefetch_related("variants", "images")
     serializer_class = ProductSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_product", "catalog.view")
+    required_perms_write = (
+        "catalog.add_product",
+        "catalog.change_product",
+        "catalog.delete_product",
+        "catalog.manage",
+    )
 
     def get_queryset(self):
         qs = super().get_queryset()
         params = self.request.query_params
         q = params.get("q")
         if q:
-            qs = qs.filter(
-                Q(name__icontains=q)
-                | Q(sku__icontains=q)
-                | Q(code__icontains=q)
-                | Q(barcodes__value=q)
-            ).distinct()
+            q = q.strip()
+        if q:
+            # On MySQL, prefer the FULLTEXT index (catalog 0002) when the
+            # search term has at least one token long enough for InnoDB's
+            # default ``innodb_ft_min_token_size`` (3 chars). LIKE fallbacks
+            # keep short / infix matches working; barcode exact match is OR'd
+            # via a correlated EXISTS so the FULLTEXT path stays index-driven.
+            use_fulltext = connection.vendor == "mysql" and any(len(tok) >= 3 for tok in q.split())
+            if use_fulltext:
+                like = f"%{q}%"
+                qs = qs.extra(
+                    where=[
+                        "(MATCH(catalog_product.name, catalog_product.sku, "
+                        "catalog_product.code) "
+                        "AGAINST (%s IN NATURAL LANGUAGE MODE) "
+                        "OR catalog_product.name LIKE %s "
+                        "OR catalog_product.sku LIKE %s "
+                        "OR catalog_product.code LIKE %s "
+                        "OR EXISTS (SELECT 1 FROM catalog_barcode b "
+                        "WHERE b.product_id = catalog_product.id "
+                        "AND b.value = %s))"
+                    ],
+                    params=[q, like, like, like, q],
+                )
+            else:
+                qs = qs.filter(
+                    Q(name__icontains=q)
+                    | Q(sku__icontains=q)
+                    | Q(code__icontains=q)
+                    | Q(barcodes__value=q)
+                )
+            qs = qs.distinct()
         status_param = params.get("status")
         if status_param:
             qs = qs.filter(status=status_param)
@@ -115,26 +148,51 @@ class ProductViewSet(BaseModelViewSet):
 class ProductVariantViewSet(BaseModelViewSet):
     queryset = ProductVariant.objects.select_related("product").all()
     serializer_class = ProductVariantSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_productvariant", "catalog.view")
+    required_perms_write = (
+        "catalog.add_productvariant",
+        "catalog.change_productvariant",
+        "catalog.delete_productvariant",
+        "catalog.manage",
+    )
 
 
 class ProductImageViewSet(BaseModelViewSet):
     queryset = ProductImage.objects.select_related("product").all()
     serializer_class = ProductImageSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_productimage", "catalog.view")
+    required_perms_write = (
+        "catalog.add_productimage",
+        "catalog.change_productimage",
+        "catalog.delete_productimage",
+        "catalog.manage",
+    )
     parser_classes = (MultiPartParser, FormParser)
 
 
 class ProductBranchAvailabilityViewSet(BaseModelViewSet):
     queryset = ProductBranchAvailability.objects.select_related("product", "branch").all()
     serializer_class = ProductBranchAvailabilitySerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_productbranchavailability", "catalog.view")
+    required_perms_write = (
+        "catalog.add_productbranchavailability",
+        "catalog.change_productbranchavailability",
+        "catalog.delete_productbranchavailability",
+        "catalog.manage",
+    )
 
 
 class ProductPriceViewSet(BaseModelViewSet):
     queryset = ProductPrice.objects.select_related("product", "variant", "branch").all()
     serializer_class = ProductPriceSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_productprice", "catalog.view")
+    required_perms_write = (
+        "catalog.add_productprice",
+        "catalog.change_productprice",
+        "catalog.delete_productprice",
+        "catalog.price.manage",
+        "catalog.manage",
+    )
 
     @extend_schema(
         summary="Bulk price lookup.",
@@ -182,19 +240,37 @@ class ProductPriceViewSet(BaseModelViewSet):
 class BundleViewSet(BaseModelViewSet):
     queryset = Bundle.objects.prefetch_related("components").all()
     serializer_class = BundleSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_bundle", "catalog.view")
+    required_perms_write = (
+        "catalog.add_bundle",
+        "catalog.change_bundle",
+        "catalog.delete_bundle",
+        "catalog.manage",
+    )
 
 
 class BundleComponentViewSet(BaseModelViewSet):
     queryset = BundleComponent.objects.select_related("bundle", "product").all()
     serializer_class = BundleComponentSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_bundlecomponent", "catalog.view")
+    required_perms_write = (
+        "catalog.add_bundlecomponent",
+        "catalog.change_bundlecomponent",
+        "catalog.delete_bundlecomponent",
+        "catalog.manage",
+    )
 
 
 class BarcodeViewSet(BaseModelViewSet):
     queryset = Barcode.objects.select_related("product", "variant").all()
     serializer_class = BarcodeSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_barcode", "catalog.view")
+    required_perms_write = (
+        "catalog.add_barcode",
+        "catalog.change_barcode",
+        "catalog.delete_barcode",
+        "catalog.manage",
+    )
 
     @extend_schema(summary="Resolve a barcode value to its product/variant.")
     @action(detail=False, methods=["get"], url_path="resolve")
@@ -217,13 +293,25 @@ class BarcodeViewSet(BaseModelViewSet):
 class AttributeViewSet(BaseModelViewSet):
     queryset = Attribute.objects.all()
     serializer_class = AttributeSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_attribute", "catalog.view")
+    required_perms_write = (
+        "catalog.add_attribute",
+        "catalog.change_attribute",
+        "catalog.delete_attribute",
+        "catalog.manage",
+    )
 
 
 class ProductAttributeValueViewSet(BaseModelViewSet):
     queryset = ProductAttributeValue.objects.select_related("product", "attribute").all()
     serializer_class = ProductAttributeValueSerializer
-    required_perms = ("catalog.view",)
+    required_perms = ("catalog.view_productattributevalue", "catalog.view")
+    required_perms_write = (
+        "catalog.add_productattributevalue",
+        "catalog.change_productattributevalue",
+        "catalog.delete_productattributevalue",
+        "catalog.manage",
+    )
 
 
 class ImportViewSet(BaseModelViewSet):

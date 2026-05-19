@@ -34,6 +34,7 @@ urlpatterns = [
         views.PasswordResetConfirmView.as_view(),
         name="password-reset-confirm",
     ),
+    path("auth/sessions/", views.SessionsView.as_view(), name="sessions"),
     # Resource CRUD.
     path("", include(router.urls)),
 ]

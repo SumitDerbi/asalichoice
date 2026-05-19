@@ -70,15 +70,46 @@ def _write_vendor_ledger(
 
 
 def _write_inventory_movement(grn: GRN) -> None:
-    """M05 stub. Will be replaced by ``apps.inventory`` ledger writes.
+    """Post inventory rows for an approved GRN via the M05 ledger service.
 
-    We intentionally keep the call site here so the M05 PR has a single
-    seam to replace.
+    Each ``GRNItem`` becomes one positive ledger line. When the line
+    carries a batch number we upsert a :class:`apps.inventory.models.Batch`
+    via the service's ``batch_kwargs`` plumbing so subsequent outbound
+    movements can drain it FIFO.
     """
 
-    logger.info(
-        "purchase.grn.approved: inventory write pending M05",
-        extra={"grn_id": grn.pk, "grn_no": grn.grn_no, "branch_id": grn.branch_id},
+    from apps.inventory.models import InventoryRefType
+    from apps.inventory.services import ledger_service
+
+    items: list[dict[str, Any]] = []
+    for grn_item in grn.items.all():
+        qty_accepted = Decimal(str(grn_item.qty_accepted or 0))
+        if qty_accepted <= 0:
+            continue
+        payload: dict[str, Any] = {
+            "product_id": grn_item.product_id,
+            "variant_id": grn_item.variant_id,
+            "qty_change": qty_accepted,
+            "cost_price": grn_item.cost_price,
+        }
+        if grn_item.batch_no:
+            payload["batch_kwargs"] = {
+                "batch_no": grn_item.batch_no,
+                "mfg_date": grn_item.mfg_date,
+                "expiry_date": grn_item.expiry_date,
+                "cost_price": grn_item.cost_price,
+            }
+        items.append(payload)
+
+    if not items:
+        return
+
+    ledger_service.post(
+        ref_type=InventoryRefType.GRN,
+        ref_id=grn.pk,
+        items=items,
+        branch=grn.branch,
+        remarks=f"GRN {grn.grn_no} approved",
     )
 
 

@@ -183,6 +183,8 @@ class UserSerializer(BaseModelSerializer):
         return attrs
 
     def create(self, validated_data: dict[str, Any]) -> User:
+        from .services import send_user_invite
+
         roles = validated_data.pop("role_ids", [])
         password = validated_data.pop("password", None)
         user = User(**validated_data)
@@ -193,6 +195,9 @@ class UserSerializer(BaseModelSerializer):
         user.save()
         for role in roles:
             UserRole.objects.create(user=user, role=role)
+        # If no password was provided, trigger invite flow
+        if not password:
+            send_user_invite(user)
         return user
 
     def update(self, instance: User, validated_data: dict[str, Any]) -> User:

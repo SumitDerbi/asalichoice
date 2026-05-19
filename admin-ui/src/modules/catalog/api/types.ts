@@ -59,6 +59,12 @@ export interface Bundle extends BaseRow {
   fixed_price: string | null;
 }
 
+export interface BundleComponent extends BaseRow {
+  bundle: number;
+  product: number;
+  quantity: string;
+}
+
 export interface ProductPrice extends BaseRow {
   product: number | null;
   variant: number | null;

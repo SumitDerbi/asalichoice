@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "AsliChoice — Inventory",
+    "_postman_id": "5a6b9c10-2d3e-4f8a-9b1c-m05-inventory-suite",
+    "description": "M05 Inventory surface smoke tests.\n\nUse the `local` environment file in `qa/postman/local.env.json`.\n\nFlow:\n1. `Login` populates `access` + `refresh` variables.\n2. Read endpoints (stock, batches, ledger) assert paginated payloads.\n3. A reservation round-trip exercises the write path and the `availability_service` lock.\n\nMutating tests for transfers / adjustments / wastage / counts live in `backend/tests/inventory/` because they require seeded master data and stock state that Postman cannot easily set up.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login/",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.environment.set('access', data.access);",
+              "pm.environment.set('refresh', data.refresh);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List stock",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/stock/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "stock", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('paginated', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('count');",
+              "  pm.expect(body).to.have.property('results');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List batches",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/batches/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "batches", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('paginated', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('results');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ledger (cursor-paginated)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/ledger/?page_size=25",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "ledger", ""],
+          "query": [{ "key": "page_size", "value": "25" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('cursor pagination shape', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.not.have.property('count');",
+              "  pm.expect(body).to.have.property('next');",
+              "  pm.expect(body).to.have.property('previous');",
+              "  pm.expect(body).to.have.property('results');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List reservations",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/reservations/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "reservations", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List transfers",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/transfers/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "transfers", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List adjustments",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/adjustments/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "adjustments", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List wastage",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/wastage/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "wastage", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List counts",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{access}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/inventory/counts/",
+          "host": ["{{baseUrl}}"],
+          "path": ["inventory", "counts", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

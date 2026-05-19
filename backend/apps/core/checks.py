@@ -20,6 +20,8 @@ BASE_MODEL_EXEMPTIONS: set[str] = {
     "core.AuditLog",
     # Vendor ledger entries are immutable financial postings (LedgerEntry).
     "purchase.VendorLedger",
+    # Inventory ledger entries are immutable quantity postings (LedgerEntry).
+    "inventory.InventoryLedger",
 }
 
 

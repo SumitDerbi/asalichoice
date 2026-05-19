@@ -7,9 +7,11 @@ import { t } from './lib/i18n';
 import { ProductsPage } from './pages/products-page';
 import { BundlesPage } from './pages/bundles-page';
 import { PricesPage } from './pages/prices-page';
+import { PricesBulkPage } from './pages/prices-bulk-page';
 import { ImportPage } from './pages/import-page';
 import { VariantsPage } from './pages/variants-page';
 import { BarcodesPage } from './pages/barcodes-page';
+import { BarcodeScannerPage } from './pages/barcode-scanner-page';
 import { AttributesPage } from './pages/attributes-page';
 import { AvailabilityPage } from './pages/availability-page';
 
@@ -22,9 +24,11 @@ const LINKS: NavLink[] = [
   { to: 'products', label: t('products.title') },
   { to: 'variants', label: t('variants.title') },
   { to: 'barcodes', label: t('barcodes.title') },
+  { to: 'barcodes/scan', label: 'Scan barcode' },
   { to: 'attributes', label: t('attributes.title') },
   { to: 'availability', label: t('availability.title') },
   { to: 'prices', label: t('prices.title') },
+  { to: 'prices/bulk', label: 'Prices (bulk)' },
   { to: 'bundles', label: t('bundles.title') },
   { to: 'import', label: t('import.title') },
 ];
@@ -86,10 +90,12 @@ export function catalogModule(): ModuleDef {
           { path: 'products', element: <ProductsPage /> },
           { path: 'variants', element: <VariantsPage /> },
           { path: 'barcodes', element: <BarcodesPage /> },
+          { path: 'barcodes/scan', element: <BarcodeScannerPage /> },
           { path: 'attributes', element: <AttributesPage /> },
           { path: 'availability', element: <AvailabilityPage /> },
           { path: 'bundles', element: <BundlesPage /> },
           { path: 'prices', element: <PricesPage /> },
+          { path: 'prices/bulk', element: <PricesBulkPage /> },
           { path: 'import', element: <ImportPage /> },
         ],
       },

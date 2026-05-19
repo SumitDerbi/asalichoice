@@ -12,6 +12,9 @@ export const productSchema = z.object({
   base_uom: z.number().int().positive(),
   description: z.string().optional().default(''),
   status: z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']).default('DRAFT'),
+  seo_title: z.string().max(255).optional().default(''),
+  seo_description: z.string().optional().default(''),
+  seo_image: z.string().url().nullable().optional(),
 });
 
 export type ProductInput = z.infer<typeof productSchema>;

@@ -81,11 +81,42 @@ def post_return(pr: PurchaseReturn) -> PurchaseReturn:
     pr.status = PRStatus.POSTED
     pr.save(update_fields=["status", "updated_at"])
 
-    # Inventory reversal stub — M05 will replace.
-    logger.info(
-        "purchase.return.posted: inventory reversal pending M05",
-        extra={"pr_id": pr.pk, "pr_no": pr.pr_no, "branch_id": pr.branch_id},
-    )
+    # Inventory reversal via M05 ledger service: one negative line per
+    # return item against the matching batch (if the GRN carried one).
+    from apps.inventory.models import InventoryRefType
+    from apps.inventory.services import ledger_service
+
+    grn_items_by_target: dict[tuple[int | None, int | None], Any] = {}
+    for grn_item in pr.grn.items.all():
+        grn_items_by_target.setdefault((grn_item.product_id, grn_item.variant_id), grn_item)
+
+    ledger_items: list[dict[str, Any]] = []
+    for raw in pr.items_json or []:
+        product = raw.get("product_id") or raw.get("product")
+        variant = raw.get("variant_id") or raw.get("variant")
+        product_id = getattr(product, "pk", product) if product is not None else None
+        variant_id = getattr(variant, "pk", variant) if variant is not None else None
+        qty = Decimal(str(raw.get("qty", "0")))
+        if qty <= 0:
+            continue
+        payload: dict[str, Any] = {
+            "product_id": product_id,
+            "variant_id": variant_id,
+            "qty_change": -qty,
+        }
+        source = grn_items_by_target.get((product_id, variant_id))
+        if source is not None and source.batch_no:
+            payload["batch_kwargs"] = {"batch_no": source.batch_no}
+        ledger_items.append(payload)
+
+    if ledger_items:
+        ledger_service.post(
+            ref_type=InventoryRefType.RETURN,
+            ref_id=pr.pk,
+            items=ledger_items,
+            branch=pr.branch,
+            remarks=f"PR {pr.pr_no} posted",
+        )
 
     grand = Decimal(str((pr.totals_json or {}).get("grand_total", "0")))
     if grand > 0:

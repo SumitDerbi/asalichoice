@@ -1,3 +1,12 @@
+export function useUserResendInvite() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await apiClient.post(`/users/users/${id}/resend_invite/`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+  });
+}
 import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import type {

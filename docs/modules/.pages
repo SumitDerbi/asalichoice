@@ -4,4 +4,5 @@ nav:
   - Users & Roles: users
   - Catalog Management: catalog
   - Vendor & Purchase: purchase
+  - Inventory: inventory
   - System Settings: system-settings.md

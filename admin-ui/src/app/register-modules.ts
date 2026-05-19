@@ -3,8 +3,10 @@ import { dashboardModule } from '@/modules/dashboard';
 import { mastersModule } from '@/modules/masters';
 import { catalogModule } from '@/modules/catalog';
 import { purchaseModule } from '@/modules/purchase';
+import { inventoryModule } from '@/modules/inventory';
 import { systemSettingsModule } from '@/modules/system-settings';
 import { usersModule } from '@/modules/users';
+import { accountModule } from '@/modules/auth/account-module.tsx';
 
 let registered = false;
 
@@ -16,6 +18,8 @@ export function registerAllModules(): void {
   registerModule(mastersModule());
   registerModule(catalogModule());
   registerModule(purchaseModule());
+  registerModule(inventoryModule());
   registerModule(usersModule());
   registerModule(systemSettingsModule());
+  registerModule(accountModule());
 }

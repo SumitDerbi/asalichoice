@@ -55,6 +55,18 @@ class HasAnyPermission(BasePermission):
         class ProductViewSet(BaseModelViewSet):
             required_perms = ("masters.view_product", "masters.change_product")
 
+    For finer-grained read/write splits, views may additionally declare
+    ``required_perms_write`` which is consulted for any non-safe HTTP
+    method (anything other than ``GET``/``HEAD``/``OPTIONS``)::
+
+        class ProductViewSet(BaseModelViewSet):
+            required_perms = ("catalog.view_product",)
+            required_perms_write = (
+                "catalog.add_product",
+                "catalog.change_product",
+                "catalog.delete_product",
+            )
+
     Falls back to allow-all when no perms are declared (handy for the
     pre-M02 phase 0 where modules don't yet have grant tables). A
     misconfigured view (empty tuple) is treated as "no auth needed
@@ -62,12 +74,20 @@ class HasAnyPermission(BasePermission):
     """
 
     message = "Missing required permission."
+    SAFE_METHODS: ClassVar[frozenset[str]] = frozenset({"GET", "HEAD", "OPTIONS"})
+
+    def _resolve_perms(self, request: Request, view: APIView) -> tuple[str, ...]:
+        if request.method not in self.SAFE_METHODS:
+            write_perms = getattr(view, "required_perms_write", None)
+            if write_perms:
+                return tuple(write_perms)
+        return tuple(getattr(view, "required_perms", ()) or ())
 
     def has_permission(self, request: Request, view: APIView) -> bool:
         user = getattr(request, "user", None)
         if not user or not user.is_authenticated:
             return False
-        perms: tuple[str, ...] = getattr(view, "required_perms", ()) or ()
+        perms = self._resolve_perms(request, view)
         if not perms:
             return True
         return any(user.has_perm(p) for p in perms)

@@ -350,6 +350,29 @@ def confirm_password_reset(identifier: str, code: str, new_password: str) -> Use
     return user
 
 
+def send_user_invite(
+    user: User, *, preferred_channel: str | None = None, ip: str | None = None, user_agent: str = ""
+) -> None:
+    """Generate a password-reset OTP and send an invite notification to the user."""
+    # Pick identifier: prefer email, then mobile, then employee_code
+    identifier = user.email or user.mobile or user.employee_code
+    if not identifier:
+        raise ValueError("User has no identifier to send invite.")
+    # Generate password-reset OTP
+    request_otp(
+        identifier,
+        purpose="RESET",
+        preferred_channel=preferred_channel,
+        ip=ip,
+        user_agent=user_agent,
+    )
+    # Compose invite message (stub: just logs OTP)
+    # In real implementation, this would send a link or code to set password
+    # For now, the OTP is sent via notify_service.send_otp inside request_otp
+    # Optionally, you could add a custom message or audit here
+    return
+
+
 __all__: Iterable[str] = (
     "LOCKOUT_THRESHOLD",
     "LOCKOUT_WINDOW_MINUTES",
