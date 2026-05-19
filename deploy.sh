@@ -162,13 +162,15 @@ create_backup() {
         fi
     done
 
-    # MySQL dump using backend .env (DB shared by both apps in current architecture).
+    # MySQL dump using backend .env. Tolerate missing keys (|| true) so the
+    # pipeline failure under `set -e` / pipefail doesn't kill the deploy.
+    # Accept both DATABASE_* and DB_* prefixes for compatibility.
     if [ -f "$API_ENV_FILE" ] && command -v mysqldump >/dev/null 2>&1; then
         local DB_NAME DB_USER DB_PASS DB_HOST
-        DB_NAME=$(grep -s '^DATABASE_NAME='     "$API_ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-        DB_USER=$(grep -s '^DATABASE_USER='     "$API_ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-        DB_PASS=$(grep -s '^DATABASE_PASSWORD=' "$API_ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-        DB_HOST=$(grep -s '^DATABASE_HOST='     "$API_ENV_FILE" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        DB_NAME=$( { grep -sE '^(DATABASE_NAME|DB_NAME)='         "$API_ENV_FILE" || true; } | head -n1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        DB_USER=$( { grep -sE '^(DATABASE_USER|DB_USER)='         "$API_ENV_FILE" || true; } | head -n1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        DB_PASS=$( { grep -sE '^(DATABASE_PASSWORD|DB_PASSWORD)=' "$API_ENV_FILE" || true; } | head -n1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        DB_HOST=$( { grep -sE '^(DATABASE_HOST|DB_HOST)='         "$API_ENV_FILE" || true; } | head -n1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
         DB_HOST="${DB_HOST:-localhost}"
 
         if [ -n "$DB_NAME" ] && [ -n "$DB_USER" ]; then
