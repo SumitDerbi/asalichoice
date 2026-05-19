@@ -343,8 +343,10 @@ deploy_storefront() {
         fi
         # storefront tailwind has no package-lock committed, so use `install`
         # instead of `ci`. Skip scripts/husky for the same reasons as admin-ui.
+        # --include=dev forces tailwindcss + plugins (declared as devDependencies)
+        # to install even when cPanel sets NODE_ENV=production.
         ( cd "$GIT_DIR/storefront/theme/static_src" \
-            && HUSKY=0 NODE_ENV=development npm install --ignore-scripts --no-audit --no-fund \
+            && HUSKY=0 NODE_ENV=development npm install --include=dev --ignore-scripts --no-audit --no-fund \
             && HUSKY=0 npm run tailwind:build )
         export PATH="$OLD_PATH"
     fi
