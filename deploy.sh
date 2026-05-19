@@ -231,8 +231,10 @@ build_admin_ui() {
 
     cd "$GIT_DIR"
     # The repo declares `admin-ui` as an npm workspace at the root.
-    npm ci --workspace admin-ui --include-workspace-root=false
-    npm run build --workspace admin-ui
+    # HUSKY=0 skips the root `prepare` -> husky hook install (dev-only) so it
+    # doesn't fail on the server where husky isn't installed yet.
+    HUSKY=0 npm ci --workspace admin-ui --include-workspace-root=false
+    HUSKY=0 npm run build --workspace admin-ui
 
     mkdir -p "$APP_DIR_ADMIN_UI"
     rsync -a --delete \
