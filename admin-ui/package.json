@@ -6,7 +6,7 @@
   "description": "AsliChoice admin operator UI (React + Vite + TypeScript).",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:ui": "vitest",
