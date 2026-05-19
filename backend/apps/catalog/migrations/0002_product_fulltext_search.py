@@ -30,6 +30,10 @@ def drop_fulltext(apps, schema_editor):  # noqa: ARG001
 
 class Migration(migrations.Migration):
 
+    # MySQL can't roll back DDL, so we must disable Django's transactional
+    # migration wrapper for this RunPython that issues ALTER TABLE.
+    atomic = False
+
     dependencies = [
         ("catalog", "0001_initial"),
     ]
