@@ -334,21 +334,30 @@ deploy_backend() {
 deploy_storefront() {
     log_info "Deploying storefront..."
 
-    # Build Tailwind CSS bundle BEFORE rsync so the output lands in the synced dir.
-    if [ -d "$GIT_DIR/storefront/theme/static_src" ]; then
+    # Tailwind CSS is built locally and storefront/theme/static/theme/css/output.css
+    # is committed to the repo. The server NEVER runs npm (same rationale as
+    # admin-ui: low-mem cPanel + workspace resolution headaches). Set
+    # BUILD_STOREFRONT_CSS=true in the config only if you ever need server build.
+    if [ "${BUILD_STOREFRONT_CSS:-false}" = "true" ] && [ -d "$GIT_DIR/storefront/theme/static_src" ]; then
         log_info "  Building Tailwind CSS..."
         local OLD_PATH="$PATH"
         if [ -n "$NODE_BIN" ] && [ -d "$NODE_BIN" ]; then
             export PATH="$NODE_BIN:$PATH"
         fi
-        # storefront tailwind has no package-lock committed, so use `install`
-        # instead of `ci`. Skip scripts/husky for the same reasons as admin-ui.
-        # --include=dev forces tailwindcss + plugins (declared as devDependencies)
-        # to install even when cPanel sets NODE_ENV=production.
+        # --no-workspaces stops npm from walking up to the repo-root package.json.
         ( cd "$GIT_DIR/storefront/theme/static_src" \
-            && HUSKY=0 NODE_ENV=development npm install --include=dev --ignore-scripts --no-audit --no-fund \
+            && rm -rf node_modules \
+            && HUSKY=0 NODE_ENV=development npm install --prefix . --no-workspaces --include=dev --ignore-scripts --no-audit --no-fund \
             && HUSKY=0 npm run tailwind:build )
         export PATH="$OLD_PATH"
+    else
+        log_info "  Using committed storefront/theme/static/theme/css/output.css."
+        if [ ! -f "$GIT_DIR/storefront/theme/static/theme/css/output.css" ]; then
+            log_error "Committed storefront output.css is missing."
+            log_error "Build locally:  (cd storefront/theme/static_src && npm install && npm run tailwind:build)"
+            log_error "Then:  git add storefront/theme/static/theme/css/output.css && git commit && git push"
+            exit 1
+        fi
     fi
 
     sync_python_app "$GIT_DIR/storefront" "$APP_DIR_STOREFRONT" "storefront"
