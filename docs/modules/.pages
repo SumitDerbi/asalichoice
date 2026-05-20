@@ -5,4 +5,5 @@ nav:
   - Catalog Management: catalog
   - Vendor & Purchase: purchase
   - Inventory: inventory
+  - Sales & Billing: sales
   - System Settings: system-settings.md

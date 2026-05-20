@@ -5,8 +5,6 @@ from __future__ import annotations
 try:
     from datetime import UTC  # Python 3.11+
 except ImportError:  # Python <3.11 fallback
-    from datetime import timezone
-
     UTC = UTC
 
 from django.conf import settings

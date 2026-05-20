@@ -4,6 +4,7 @@ import { mastersModule } from '@/modules/masters';
 import { catalogModule } from '@/modules/catalog';
 import { purchaseModule } from '@/modules/purchase';
 import { inventoryModule } from '@/modules/inventory';
+import { salesModule } from '@/modules/sales';
 import { systemSettingsModule } from '@/modules/system-settings';
 import { usersModule } from '@/modules/users';
 import { accountModule } from '@/modules/auth/account-module.tsx';
@@ -19,6 +20,7 @@ export function registerAllModules(): void {
   registerModule(catalogModule());
   registerModule(purchaseModule());
   registerModule(inventoryModule());
+  registerModule(salesModule());
   registerModule(usersModule());
   registerModule(systemSettingsModule());
   registerModule(accountModule());
