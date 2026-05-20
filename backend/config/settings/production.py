@@ -18,6 +18,20 @@ SECRET_KEY = env("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # ---------------------------------------------------------------------------
+# Static files — serve via WhiteNoise (Passenger does not serve /static/).
+# Insert WhiteNoise right after SecurityMiddleware (recommended position).
+# ---------------------------------------------------------------------------
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Security headers (per _conventions.md §8)
 # ---------------------------------------------------------------------------
 SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)  # 1y
