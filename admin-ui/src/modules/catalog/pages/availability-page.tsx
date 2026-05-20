@@ -6,14 +6,39 @@ import { ProductSelectField } from '../components/catalog-select-field';
 import { CheckboxField } from '../components/json-field';
 import { useCanManageCatalog } from '../lib/use-permission';
 import { availabilitySchema, type AvailabilityInput } from '../schemas';
-import type { ProductBranchAvailability } from '../api/types';
+import type { ProductBranchAvailability, Product } from '../api/types';
+import { useCatalogList } from '../api/hooks';
+import { useMasterList } from '@/modules/masters/api/hooks';
+import type { Branch } from '@/modules/masters/api/types';
 import { t } from '../lib/i18n';
 
 const KNOWN = ['product', 'branch', 'is_listed'] as const;
 
+function ProductCodeCell({ productId }: { productId: number }) {
+  const { data } = useCatalogList<Product>('products');
+  const p = (data ?? []).find((r) => r.id === productId);
+  if (!p) return <span className="text-muted-foreground">#{productId}</span>;
+  return <span>{p.code}</span>;
+}
+
+function BranchCodeCell({ branchId }: { branchId: number }) {
+  const { data } = useMasterList<Branch>('branches');
+  const b = (data ?? []).find((r) => r.id === branchId);
+  if (!b) return <span className="text-muted-foreground">#{branchId}</span>;
+  return <span>{b.code}</span>;
+}
+
 const columns: ColumnDef<ProductBranchAvailability, unknown>[] = [
-  { accessorKey: 'product', header: () => t('common.product') },
-  { accessorKey: 'branch', header: () => t('common.branch') },
+  {
+    accessorKey: 'product',
+    header: () => t('common.product'),
+    cell: ({ row }) => <ProductCodeCell productId={row.original.product} />,
+  },
+  {
+    accessorKey: 'branch',
+    header: () => t('common.branch'),
+    cell: ({ row }) => <BranchCodeCell branchId={row.original.branch} />,
+  },
   {
     id: 'is_listed',
     header: () => t('common.is_listed'),

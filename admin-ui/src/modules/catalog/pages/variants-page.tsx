@@ -4,15 +4,27 @@ import { CatalogListPage } from '../components/catalog-list-page';
 import { CatalogFormBody } from '../components/catalog-form-body';
 import { CheckboxField, JsonField } from '../components/json-field';
 import { ProductSelectField } from '../components/catalog-select-field';
+import { useCatalogList } from '../api/hooks';
 import { useCanManageCatalog } from '../lib/use-permission';
 import { variantSchema, type VariantInput } from '../schemas';
-import type { ProductVariant } from '../api/types';
+import type { Product, ProductVariant } from '../api/types';
 import { t } from '../lib/i18n';
 
 const KNOWN = ['product', 'sku', 'barcode', 'attributes_json', 'is_default'] as const;
 
+function ProductNameCell({ productId }: { productId: number }) {
+  const { data } = useCatalogList<Product>('products');
+  const product = (data ?? []).find((p) => p.id === productId);
+  if (!product) return <span className="text-muted-foreground">#{productId}</span>;
+  return <span>{product.name}</span>;
+}
+
 const columns: ColumnDef<ProductVariant, unknown>[] = [
-  { accessorKey: 'product', header: () => t('common.product') },
+  {
+    accessorKey: 'product',
+    header: () => t('common.product'),
+    cell: ({ row }) => <ProductNameCell productId={row.original.product} />,
+  },
   { accessorKey: 'sku', header: () => t('common.sku') },
   { accessorKey: 'barcode', header: () => 'Barcode' },
   {
