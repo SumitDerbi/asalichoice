@@ -636,6 +636,9 @@ body {
 .w-4 {
   width: 1rem;
 }
+.w-40 {
+  width: 10rem;
+}
 .w-6 {
   width: 1.5rem;
 }
@@ -904,6 +907,9 @@ body {
 .border-amber-300 {
   --tw-border-opacity: 1;
   border-color: rgb(252 211 77 / var(--tw-border-opacity, 1));
+}
+.border-destructive {
+  border-color: hsl(var(--destructive));
 }
 .border-emerald-200 {
   --tw-border-opacity: 1;
