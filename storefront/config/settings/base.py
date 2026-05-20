@@ -73,6 +73,10 @@ WAGTAIL_APPS = [
     "wagtail.search",
     "wagtail.admin",
     "wagtail",
+    # Required by wagtailseo (registers @register_setting → wagtailsettings
+    # URL namespace). Without this the Wagtail admin sidebar crashes with
+    # NoReverseMatch: 'wagtailsettings'.
+    "wagtail.contrib.settings",
     "modelcluster",
     "taggit",
     # SEO helpers (page-level meta, OG, Twitter, canonical, JSON-LD).
@@ -123,6 +127,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Exposes wagtailseo's settings model in templates.
+                "wagtail.contrib.settings.context_processors.settings",
                 "apps.core.context_processors.site_meta",
             ],
         },
