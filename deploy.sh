@@ -175,11 +175,26 @@ create_backup() {
 
         if [ -n "$DB_NAME" ] && [ -n "$DB_USER" ]; then
             log_info "  Dumping MySQL database '$DB_NAME'..."
-            if mysqldump -u "$DB_USER" -p"$DB_PASS" -h "$DB_HOST" "$DB_NAME" \
-                > "$BACKUP_DIR/${DB_NAME}.sql" 2>/dev/null; then
+            local DUMP_ERR="$BACKUP_DIR/${DB_NAME}.mysqldump.err"
+            # --single-transaction: no LOCK TABLES needed (shared-host friendly).
+            # --no-tablespaces: avoids PROCESS privilege requirement on MariaDB 10.x.
+            # --skip-column-statistics: MySQL 8 client vs MariaDB compatibility.
+            if mysqldump \
+                    --single-transaction \
+                    --quick \
+                    --no-tablespaces \
+                    --skip-column-statistics \
+                    --routines --triggers --events \
+                    -u "$DB_USER" -p"$DB_PASS" -h "$DB_HOST" "$DB_NAME" \
+                    > "$BACKUP_DIR/${DB_NAME}.sql" 2> "$DUMP_ERR"; then
+                rm -f "$DUMP_ERR"
                 log_success "  Database dumped to $BACKUP_DIR/${DB_NAME}.sql"
             else
-                log_warn "  mysqldump failed — continuing without DB backup."
+                log_warn "  mysqldump failed (see $DUMP_ERR) — continuing without DB backup."
+                # Surface the first few lines so it shows up in the deploy log.
+                sed -n '1,5p' "$DUMP_ERR" 2>/dev/null | while IFS= read -r line; do
+                    log_warn "    $line"
+                done
                 rm -f "$BACKUP_DIR/${DB_NAME}.sql"
             fi
         fi
