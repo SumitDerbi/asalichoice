@@ -3,6 +3,7 @@ import { Field } from '@/lib/forms';
 import { CatalogListPage } from '../components/catalog-list-page';
 import { CatalogFormBody } from '../components/catalog-form-body';
 import { CheckboxField, JsonField } from '../components/json-field';
+import { ProductSelectField } from '../components/catalog-select-field';
 import { useCanManageCatalog } from '../lib/use-permission';
 import { variantSchema, type VariantInput } from '../schemas';
 import type { ProductVariant } from '../api/types';
@@ -50,7 +51,12 @@ export function VariantsPage() {
             <>
               <form.Field name="product">
                 {(f) => (
-                  <Field field={f} label={`${t('common.product')} ID`} formErrorMap={errorMap} />
+                  <ProductSelectField
+                    field={f}
+                    label={t('common.product')}
+                    allowEmpty={false}
+                    formErrorMap={errorMap}
+                  />
                 )}
               </form.Field>
               <form.Field name="sku">

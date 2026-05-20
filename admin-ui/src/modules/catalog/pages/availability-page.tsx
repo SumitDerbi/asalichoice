@@ -1,8 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Field } from '@/lib/forms';
 import { CatalogListPage } from '../components/catalog-list-page';
 import { CatalogFormBody } from '../components/catalog-form-body';
 import { RemoteSelectField } from '@/modules/masters/components/select-field';
+import { ProductSelectField } from '../components/catalog-select-field';
 import { CheckboxField } from '../components/json-field';
 import { useCanManageCatalog } from '../lib/use-permission';
 import { availabilitySchema, type AvailabilityInput } from '../schemas';
@@ -48,7 +48,12 @@ export function AvailabilityPage() {
             <>
               <form.Field name="product">
                 {(f) => (
-                  <Field field={f} label={`${t('common.product')} ID`} formErrorMap={errorMap} />
+                  <ProductSelectField
+                    field={f}
+                    label={t('common.product')}
+                    allowEmpty={false}
+                    formErrorMap={errorMap}
+                  />
                 )}
               </form.Field>
               <form.Field name="branch">

@@ -3,6 +3,7 @@ import { Field } from '@/lib/forms';
 import { CatalogListPage } from '../components/catalog-list-page';
 import { CatalogFormBody } from '../components/catalog-form-body';
 import { SelectField } from '@/modules/masters/components/select-field';
+import { ProductSelectField, VariantSelectField } from '../components/catalog-select-field';
 import { useCanManageCatalog } from '../lib/use-permission';
 import { barcodeSchema, type BarcodeInput } from '../schemas';
 import type { Barcode } from '../api/types';
@@ -76,18 +77,20 @@ export function BarcodesPage() {
               </form.Field>
               <form.Field name="product">
                 {(f) => (
-                  <Field
+                  <ProductSelectField
                     field={f}
-                    label={`${t('common.product')} ID (exclusive with variant)`}
+                    label={`${t('common.product')} (exclusive with variant)`}
+                    allowEmpty
                     formErrorMap={errorMap}
                   />
                 )}
               </form.Field>
               <form.Field name="variant">
                 {(f) => (
-                  <Field
+                  <VariantSelectField
                     field={f}
-                    label={`${t('common.variant')} ID (exclusive with product)`}
+                    label={`${t('common.variant')} (exclusive with product)`}
+                    allowEmpty
                     formErrorMap={errorMap}
                   />
                 )}

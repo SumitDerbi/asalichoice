@@ -3,6 +3,7 @@ import { Field } from '@/lib/forms';
 import { CatalogListPage } from '../components/catalog-list-page';
 import { CatalogFormBody } from '../components/catalog-form-body';
 import { RemoteSelectField } from '@/modules/masters/components/select-field';
+import { ProductSelectField, VariantSelectField } from '../components/catalog-select-field';
 import { useCanManagePrices } from '../lib/use-permission';
 import { priceSchema, type PriceInput } from '../schemas';
 import type { ProductPrice } from '../api/types';
@@ -72,18 +73,20 @@ export function PricesPage() {
               </form.Field>
               <form.Field name="product">
                 {(f) => (
-                  <Field
+                  <ProductSelectField
                     field={f}
-                    label="Product ID (exclusive with variant)"
+                    label="Product (exclusive with variant)"
+                    allowEmpty
                     formErrorMap={errorMap}
                   />
                 )}
               </form.Field>
               <form.Field name="variant">
                 {(f) => (
-                  <Field
+                  <VariantSelectField
                     field={f}
-                    label="Variant ID (exclusive with product)"
+                    label="Variant (exclusive with product)"
+                    allowEmpty
                     formErrorMap={errorMap}
                   />
                 )}
