@@ -39,7 +39,7 @@ export function VariantsPage() {
             product: (initial.product ?? null) as unknown as number,
             sku: initial.sku ?? '',
             barcode: initial.barcode ?? '',
-            attributes_json: initial.attributes_json ?? null,
+            attributes_json: initial.attributes_json ?? {},
             is_default: initial.is_default ?? false,
           }}
           knownFields={KNOWN}
@@ -72,6 +72,7 @@ export function VariantsPage() {
                     label={t('common.attributes_json')}
                     rows={4}
                     placeholder={'{\n  "color": "red"\n}'}
+                    emptyValue={{}}
                     formErrorMap={errorMap}
                   />
                 )}

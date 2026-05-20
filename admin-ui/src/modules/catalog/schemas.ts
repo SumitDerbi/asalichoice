@@ -73,10 +73,7 @@ export const variantSchema = z.object({
   product: requiredId,
   sku: z.string().min(1, 'Required').max(64),
   barcode: z.string().max(64).optional().default(''),
-  // Backend `attributes_json` is a JSONField(default=dict, null=False).
-  // Empty textarea → null in the form; coerce to {} so POST doesn't 400 with
-  // "This field may not be null."
-  attributes_json: z.preprocess((v) => (v == null ? {} : v), z.unknown()),
+  attributes_json: z.unknown().optional(),
   is_default: z.boolean().optional().default(false),
 });
 

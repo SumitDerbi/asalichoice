@@ -9,6 +9,12 @@ interface JsonFieldProps {
   rows?: number;
   placeholder?: string;
   formErrorMap?: Record<string, unknown>;
+  /**
+   * Value written to form state when the textarea is empty. Defaults to
+   * `null`. Pass `{}` when the backend field is `JSONField(default=dict,
+   * null=False)` so blank submits don't 400 with "may not be null."
+   */
+  emptyValue?: unknown;
 }
 
 /**
@@ -16,7 +22,14 @@ interface JsonFieldProps {
  * `JSON.parse`. Displays parse errors inline. The underlying form value is
  * the parsed JS value (object / array / null).
  */
-export function JsonField({ field, label, rows = 3, placeholder, formErrorMap }: JsonFieldProps) {
+export function JsonField({
+  field,
+  label,
+  rows = 3,
+  placeholder,
+  formErrorMap,
+  emptyValue = null,
+}: JsonFieldProps) {
   const initial = React.useMemo(() => {
     const v = field.state.value;
     if (v == null || v === '') return '';
@@ -36,7 +49,7 @@ export function JsonField({ field, label, rows = 3, placeholder, formErrorMap }:
     setText(raw);
     if (raw.trim() === '') {
       setParseError(null);
-      field.handleChange(null as never);
+      field.handleChange(emptyValue as never);
       return;
     }
     try {

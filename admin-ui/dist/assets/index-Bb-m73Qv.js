@@ -34035,42 +34035,49 @@ function Sc({ label: e, value: t }) {
     ],
   });
 }
-function C1({ field: e, label: t, rows: n = 3, placeholder: r, formErrorMap: s }) {
-  const o = p.useMemo(() => {
-      const m = e.state.value;
-      if (m == null || m === '') return '';
-      if (typeof m == 'string') return m;
+function C1({
+  field: e,
+  label: t,
+  rows: n = 3,
+  placeholder: r,
+  formErrorMap: s,
+  emptyValue: o = null,
+}) {
+  const a = p.useMemo(() => {
+      const x = e.state.value;
+      if (x == null || x === '') return '';
+      if (typeof x == 'string') return x;
       try {
-        return JSON.stringify(m, null, 2);
+        return JSON.stringify(x, null, 2);
       } catch {
         return '';
       }
     }, [e.state.value]),
-    [a, l] = p.useState(o),
-    [c, u] = p.useState(null),
-    d = Dl(e, s),
-    f = `field-${e.name}`;
-  function h(m) {
-    if ((l(m), m.trim() === '')) {
-      (u(null), e.handleChange(null));
+    [l, c] = p.useState(a),
+    [u, d] = p.useState(null),
+    f = Dl(e, s),
+    h = `field-${e.name}`;
+  function m(x) {
+    if ((c(x), x.trim() === '')) {
+      (d(null), e.handleChange(o));
       return;
     }
     try {
-      const x = JSON.parse(m);
-      (u(null), e.handleChange(x));
-    } catch (x) {
-      u(x.message);
+      const g = JSON.parse(x);
+      (d(null), e.handleChange(g));
+    } catch (g) {
+      d(g.message);
     }
   }
   return i.jsx(qe, {
-    id: f,
+    id: h,
     label: t,
-    errorMessage: c ?? d,
+    errorMessage: u ?? f,
     children: i.jsx('textarea', {
-      id: f,
+      id: h,
       name: e.name,
-      value: a,
-      onChange: (m) => h(m.target.value),
+      value: l,
+      onChange: (x) => m(x.target.value),
       onBlur: e.handleBlur,
       rows: n,
       placeholder: r,
@@ -34131,7 +34138,7 @@ function tV() {
           product: t.product ?? null,
           sku: t.sku ?? '',
           barcode: t.barcode ?? '',
-          attributes_json: t.attributes_json ?? null,
+          attributes_json: t.attributes_json ?? {},
           is_default: t.is_default ?? !1,
         },
         knownFields: J3,
@@ -34169,6 +34176,7 @@ function tV() {
                     placeholder: `{
   "color": "red"
 }`,
+                    emptyValue: {},
                     formErrorMap: a,
                   }),
               }),
