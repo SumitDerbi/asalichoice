@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal, InvalidOperation
+
 from rest_framework import serializers
 
 from apps.core.api.serializers import BaseModelSerializer
@@ -144,8 +146,25 @@ class TaxSerializer(BaseModelSerializer):
             "hsn_codes",
             "is_active",
         )
+        # ``rate_total`` is a denormalised cache of ``sum(components_json[*].rate)``;
+        # the model's ``clean()`` enforces that equality. Clients only need to send
+        # ``components_json`` — we derive ``rate_total`` from it in ``validate``.
+        extra_kwargs = {"rate_total": {"required": False}}  # noqa: RUF012
 
     def validate(self, attrs):
+        components = attrs.get("components_json")
+        if components is None and self.instance is not None:
+            components = self.instance.components_json
+        if isinstance(components, list):
+            try:
+                derived = sum(
+                    (Decimal(str(c.get("rate"))) for c in components if isinstance(c, dict)),
+                    Decimal("0"),
+                )
+            except (InvalidOperation, TypeError):
+                derived = None
+            if derived is not None:
+                attrs["rate_total"] = derived
         instance = Tax(
             **{
                 **({"id": self.instance.id} if self.instance else {}),

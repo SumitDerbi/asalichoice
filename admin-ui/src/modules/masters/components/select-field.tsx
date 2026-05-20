@@ -32,6 +32,20 @@ export function SelectField<T extends string | number>({
   const error = getFieldError(field, formErrorMap);
   const id = `field-${field.name as string}`;
   const value = field.state.value;
+  // When the select is non-clearable (no empty option) and the current form
+  // value matches none of the rendered options, the browser visually selects
+  // the first option but the form state stays at its initial (often 0 / null)
+  // value — which then fails "required" validation even though the user can
+  // see a value. Sync the form state to the first option to match what is
+  // actually shown.
+  React.useEffect(() => {
+    if (allowEmpty) return;
+    if (options.length === 0) return;
+    const currentMatches = options.some((o) => String(o.value) === String(value ?? ''));
+    if (!currentMatches) {
+      field.handleChange(options[0].value as never);
+    }
+  }, [allowEmpty, options, value, field]);
   return (
     <FieldShell id={id} label={label} errorMessage={error}>
       <select
